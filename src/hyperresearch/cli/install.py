@@ -25,8 +25,13 @@ def install(
         "--steps-only",
         help="Install only the 16 step skills to <PATH>/.claude/skills/. Used internally by the entry skill bootstrap on first /hyperresearch invocation in a project. Not normally invoked by users.",
     ),
+    codex: bool = typer.Option(
+        False,
+        "--codex",
+        help="Install Codex-facing project guidance without installing Claude Code hooks, skills, or agents.",
+    ),
 ) -> None:
-    """Install hyperresearch: init vault + inject CLAUDE.md + install Claude Code hooks."""
+    """Install hyperresearch integrations."""
     import sys
 
     from hyperresearch.core.hooks import (
@@ -110,7 +115,7 @@ def install(
         vault_action = "existing"
     except VaultError:
         try:
-            vault = Vault.init(root, name=name)
+            vault = Vault.init(root, name=name, inject_docs=not codex)
             vault_action = "created"
         except VaultError as e:
             if json_output:
@@ -120,9 +125,50 @@ def install(
             raise typer.Exit(1)
 
     # Step 2: Resolve the hyperresearch executable path
-    from hyperresearch.core.agent_docs import _resolve_executable, inject_agent_docs
+    from hyperresearch.core.agent_docs import (
+        _resolve_executable,
+        inject_agent_docs,
+        inject_codex_agent_docs,
+    )
 
     hpr_path = _resolve_executable()
+
+    if codex:
+        from hyperresearch.core.codex import install_codex_workflow
+
+        doc_actions = inject_codex_agent_docs(root)
+        workflow_actions = install_codex_workflow(root, hpr_path=hpr_path)
+        data = {
+            "vault_path": str(vault.root),
+            "vault": vault_action,
+            "codex_agent_docs": doc_actions,
+            "codex_workflow": workflow_actions,
+            "hooks_installed": [],
+            "crawl4ai": "skipped",
+        }
+
+        if json_output:
+            output(success(data, vault=str(vault.root)), json_mode=True)
+        else:
+            if vault_action == "created":
+                console.print(f"[green]Vault created:[/] {vault.root}")
+            else:
+                console.print(f"[dim]Vault exists:[/] {vault.root}")
+            if doc_actions:
+                console.print("[green]Codex docs:[/]")
+                for action in doc_actions:
+                    console.print(f"  {action}")
+            else:
+                console.print("[dim]Codex docs already installed.[/]")
+            if workflow_actions:
+                console.print("[green]Codex workflow:[/]")
+                for action in workflow_actions:
+                    console.print(f"  {action}")
+            else:
+                console.print("[dim]Codex workflow already installed.[/]")
+            console.print("\n[bold]Ready.[/] Codex will use hyperresearch through the CLI.")
+            console.print("[dim]Claude Code hooks, skills, and agents were not installed.[/]")
+        return
 
     # Step 3: Always re-inject CLAUDE.md (updates blurb + path)
     doc_actions = inject_agent_docs(root)

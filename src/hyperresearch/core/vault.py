@@ -95,7 +95,12 @@ class Vault:
         self.close()
 
     @staticmethod
-    def init(root: Path, name: str = "Research Base", research_dir: str = "research") -> Vault:
+    def init(
+        root: Path,
+        name: str = "Research Base",
+        research_dir: str = "research",
+        inject_docs: bool = True,
+    ) -> Vault:
         """Initialize a new vault at the given path."""
         root = root.resolve()
         hyperresearch_dir = root / HYPERRESEARCH_DIR
@@ -136,9 +141,10 @@ class Vault:
             "# {{ title }}\n\n"
         )
 
-        # Inject CLAUDE.md at vault root
-        from hyperresearch.core.agent_docs import inject_agent_docs
-        inject_agent_docs(root)
+        if inject_docs:
+            # Inject CLAUDE.md at vault root
+            from hyperresearch.core.agent_docs import inject_agent_docs
+            inject_agent_docs(root)
 
         return vault
 

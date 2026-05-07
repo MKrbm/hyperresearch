@@ -36,6 +36,49 @@ def test_init_json(tmp_path: Path):
     assert "vault_path" in data["data"]
 
 
+def test_install_codex_json_creates_agents_md_without_claude_hooks(tmp_path: Path):
+    root = tmp_path / "codex-kb"
+    result = runner.invoke(app, ["install", str(root), "--codex", "--json"])
+    assert result.exit_code == 0
+    data = json.loads(result.output)
+    assert data["ok"] is True
+    assert data["data"]["vault"] == "created"
+    assert data["data"]["hooks_installed"] == []
+    assert data["data"]["crawl4ai"] == "skipped"
+    assert data["data"]["codex_workflow"]
+
+    agents_path = root / "AGENTS.md"
+    assert agents_path.exists()
+    body = agents_path.read_text(encoding="utf-8")
+    assert "hyperresearch for Codex" in body
+    assert "hyperresearch ... --json" in body
+    assert "MCP is available" in body
+
+    assert not (root / ".claude").exists()
+    assert not (root / ".hyperresearch" / "hook.js").exists()
+    assert (root / ".agents" / "skills" / "hyperresearch" / "SKILL.md").exists()
+    assert (root / ".agents" / "skills" / "hyperresearch-1-decompose" / "SKILL.md").exists()
+    assert (root / ".codex" / "agents" / "hyperresearch-fetcher.toml").exists()
+
+
+def test_install_codex_preserves_existing_agents_md(tmp_path: Path):
+    root = tmp_path / "existing"
+    root.mkdir()
+    (root / "AGENTS.md").write_text("# Team rules\n\nDo not remove me.\n", encoding="utf-8")
+
+    result = runner.invoke(app, ["install", str(root), "--codex", "--json"])
+    assert result.exit_code == 0
+    body = (root / "AGENTS.md").read_text(encoding="utf-8")
+    assert "Do not remove me." in body
+    assert body.count("<!-- hyperresearch-codex:start -->") == 1
+
+    result = runner.invoke(app, ["install", str(root), "--codex", "--json"])
+    assert result.exit_code == 0
+    body = (root / "AGENTS.md").read_text(encoding="utf-8")
+    assert "Do not remove me." in body
+    assert body.count("<!-- hyperresearch-codex:start -->") == 1
+
+
 def test_init_double(tmp_path: Path):
     runner.invoke(app, ["init", str(tmp_path / "dup")])
     result = runner.invoke(app, ["init", str(tmp_path / "dup")])
