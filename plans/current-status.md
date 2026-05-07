@@ -1,15 +1,15 @@
 # Current Status
 
 ## Phase
-Construction complete / Manual dry-run pending
+Construction complete / Manual dry-run partially complete
 
 ## Active Unit
 None
 
 ## Current Objective
-Manual dry-run the generated Codex integration in a disposable vault, then use
-the results to decide whether hooks, prompt refinements, or additional tests are
-needed.
+Finish the live Codex dry-run once the local environment can reach the Codex
+API. Local install, generated-file, backend-command, pytest, and ruff checks
+are passing.
 
 ## Confirmed Decisions
 
@@ -32,13 +32,26 @@ needed.
 - [x] Unit-02: Codex Workflow Parity
 - [x] Unit-03: Verification and Hardening
 
+## Latest Verification
+
+- [x] `hyperresearch install --codex --json` creates `AGENTS.md`,
+      `.agents/skills/hyperresearch`, 16 step skills, and 14 custom agents in a
+      disposable vault.
+- [x] Generated Codex skills now include the resolved absolute
+      `hyperresearch` binary path in adapter guidance and bootstrap commands.
+- [x] The generated backend command path runs `status --json` successfully from
+      the disposable vault.
+- [x] `uv run pytest tests/ -q` passes.
+- [x] `.venv/bin/ruff check src tests` passes.
+- [ ] `codex exec` live-run is blocked in this environment by DNS/WebSocket
+      connection failures to the Codex API, so actual model loading of
+      `AGENTS.md` and skills still needs a network-enabled manual run.
+
 ## Next Action
 
 Manual dry-run:
 
-1. Create a disposable vault.
-2. Run `hyperresearch install --codex --json`.
-3. Start Codex in that vault and confirm it loads the managed `AGENTS.md` block
+1. Start Codex in the disposable vault and confirm it loads the managed `AGENTS.md` block
    and hyperresearch skills.
-4. Run a light-tier hyperresearch prompt.
-5. Run a full-tier prompt after the light-tier path succeeds.
+2. Run a light-tier hyperresearch prompt.
+3. Run a full-tier prompt after the light-tier path succeeds.

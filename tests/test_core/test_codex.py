@@ -9,7 +9,7 @@ from hyperresearch.core.hooks import _HYPERRESEARCH_STEP_SKILLS
 
 
 def test_install_codex_workflow_creates_entry_and_step_skills(tmp_vault):
-    actions = install_codex_workflow(tmp_vault.root, "hyperresearch")
+    actions = install_codex_workflow(tmp_vault.root, "/opt/hyperresearch/bin/hyperresearch")
     assert actions
 
     entry = tmp_vault.root / ".agents" / "skills" / "hyperresearch" / "SKILL.md"
@@ -18,8 +18,8 @@ def test_install_codex_workflow_creates_entry_and_step_skills(tmp_vault):
     assert "name: hyperresearch" in entry_body
     assert "Codex adapter notes" in entry_body
     assert ".agents/skills" in entry_body
-    assert "hyperresearch install --codex . --json" in entry_body
-    assert "hyperresearch ... --json" in entry_body
+    assert "/opt/hyperresearch/bin/hyperresearch install --codex . --json" in entry_body
+    assert "/opt/hyperresearch/bin/hyperresearch ... --json" in entry_body
 
     for skill_name in _HYPERRESEARCH_STEP_SKILLS:
         skill_path = tmp_vault.root / ".agents" / "skills" / skill_name / "SKILL.md"
@@ -27,6 +27,9 @@ def test_install_codex_workflow_creates_entry_and_step_skills(tmp_vault):
         body = skill_path.read_text(encoding="utf-8")
         assert f"name: {skill_name}" in body
         assert "Codex adapter notes" in body
+
+    corpus_critic = tmp_vault.root / ".agents" / "skills" / "hyperresearch-8-corpus-critic" / "SKILL.md"
+    assert "/opt/hyperresearch/bin/hyperresearch search" in corpus_critic.read_text(encoding="utf-8")
 
 
 def test_install_codex_workflow_creates_custom_agents(tmp_vault):

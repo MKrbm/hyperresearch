@@ -38,10 +38,11 @@ CODEX_SKILL_PREAMBLE = """
 ## Codex adapter notes
 
 These instructions are adapted from the Claude Code hyperresearch workflow.
-For initial parity, use the existing CLI backend, not MCP:
+For initial parity, use the existing CLI backend, not MCP. Use this exact
+binary path for every backend command; it may not be on PATH:
 
 ```bash
-hyperresearch ... --json
+{hpr} ... --json
 ```
 
 When these instructions say `Skill(skill: "hyperresearch-N-name")`, activate
@@ -54,7 +55,7 @@ If a hard Claude tool lock cannot be represented exactly in Codex, obey the
 prompt-level restriction and preserve the same artifact/log checks.
 
 Do not use direct source-page browsing as a substitute for captured provenance.
-Use `hyperresearch fetch` for source pages.
+Use `{hpr} fetch` for source pages.
 
 ---
 """
@@ -92,8 +93,8 @@ def install_codex_workflow(vault_root: Path, hpr_path: str = "hyperresearch") ->
     """Install Codex skills and custom agents for the hyperresearch workflow."""
     actions: list[str] = []
     for installer in (
-        lambda: _install_codex_entry_skill(vault_root),
-        lambda: _install_codex_step_skills(vault_root),
+        lambda: _install_codex_entry_skill(vault_root, hpr_path),
+        lambda: _install_codex_step_skills(vault_root, hpr_path),
         lambda: _install_codex_agents(vault_root, hpr_path),
     ):
         result = installer()
@@ -102,20 +103,20 @@ def install_codex_workflow(vault_root: Path, hpr_path: str = "hyperresearch") ->
     return actions
 
 
-def _install_codex_entry_skill(vault_root: Path) -> str | None:
+def _install_codex_entry_skill(vault_root: Path, hpr_path: str) -> str | None:
     content = _read_skill_source("hyperresearch.md")
     if content is None:
         return None
-    return _write_codex_skill(vault_root, "hyperresearch", _adapt_codex_skill(content))
+    return _write_codex_skill(vault_root, "hyperresearch", _adapt_codex_skill(content, hpr_path))
 
 
-def _install_codex_step_skills(vault_root: Path) -> str | None:
+def _install_codex_step_skills(vault_root: Path, hpr_path: str) -> str | None:
     installed: list[str] = []
     for skill_name in _HYPERRESEARCH_STEP_SKILLS:
         content = _read_skill_source(f"{skill_name}.md")
         if content is None:
             continue
-        result = _write_codex_skill(vault_root, skill_name, _adapt_codex_skill(content))
+        result = _write_codex_skill(vault_root, skill_name, _adapt_codex_skill(content, hpr_path))
         if result:
             installed.append(skill_name)
 
@@ -134,14 +135,19 @@ def _write_codex_skill(vault_root: Path, skill_name: str, content: str) -> str |
     return f"Codex: .agents/skills/{skill_name}/SKILL.md"
 
 
-def _adapt_codex_skill(content: str) -> str:
+def _adapt_codex_skill(content: str, hpr_path: str) -> str:
+    hpr_posix = hpr_path.replace("\\", "/")
     content = content.replace(".claude/skills", ".agents/skills")
-    content = content.replace("hyperresearch install --steps-only . --json", "hyperresearch install --codex . --json")
+    content = content.replace("{hpr_path}", hpr_posix)
+    content = content.replace("hyperresearch init . --json", f"{hpr_posix} init . --json")
+    content = content.replace("hyperresearch install --steps-only . --json", f"{hpr_posix} install --codex . --json")
+    content = content.replace("hyperresearch note show <id1> <id2> ... -j", f"{hpr_posix} note show <id1> <id2> ... -j")
+    preamble = CODEX_SKILL_PREAMBLE.format(hpr=hpr_posix)
     if content.startswith("---"):
         parts = content.split("---", 2)
         if len(parts) == 3:
-            return f"---{parts[1]}---\n\n{CODEX_SKILL_PREAMBLE}\n{parts[2].lstrip()}"
-    return f"{CODEX_SKILL_PREAMBLE}\n{content}"
+            return f"---{parts[1]}---\n\n{preamble}\n{parts[2].lstrip()}"
+    return f"{preamble}\n{content}"
 
 
 def _install_codex_agents(vault_root: Path, hpr_path: str) -> str | None:
