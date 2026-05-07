@@ -1,14 +1,15 @@
 # Current Status
 
 ## Phase
-Construction complete / Manual dry-run partially complete
+Construction complete / Codex read-only dry-run complete
 
 ## Active Unit
 None
 
 ## Current Objective
-Finish the live Codex dry-run once the local environment can reach the Codex
-API. Local install, generated-file, backend-command, pytest, and ruff checks
+Run a light-tier Hyperresearch prompt in the generated Codex workflow, then run
+a full-tier prompt after the light-tier path succeeds. Local install,
+generated-file, backend-command, Codex read-only exec, pytest, and ruff checks
 are passing.
 
 ## Confirmed Decisions
@@ -43,15 +44,14 @@ are passing.
       the disposable vault.
 - [x] `uv run pytest tests/ -q` passes.
 - [x] `.venv/bin/ruff check src tests` passes.
-- [ ] `codex exec` live-run is blocked in this environment by DNS/WebSocket
-      connection failures to the Codex API, so actual model loading of
-      `AGENTS.md` and skills still needs a network-enabled manual run.
+- [x] `codex exec` read-only live-run loads the generated `AGENTS.md`, confirms
+      `.agents/skills/hyperresearch/SKILL.md` and
+      `.codex/agents/hyperresearch-fetcher.toml`, and reports the resolved
+      backend command path.
 
 ## Next Action
 
 Manual dry-run:
 
-1. Start Codex in the disposable vault and confirm it loads the managed `AGENTS.md` block
-   and hyperresearch skills.
-2. Run a light-tier hyperresearch prompt.
-3. Run a full-tier prompt after the light-tier path succeeds.
+1. Run a light-tier hyperresearch prompt.
+2. Run a full-tier prompt after the light-tier path succeeds.
