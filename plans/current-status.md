@@ -1,16 +1,15 @@
 # Current Status
 
 ## Phase
-Construction complete / Codex read-only dry-run complete
+Construction complete / Codex light-tier dry-run complete
 
 ## Active Unit
 None
 
 ## Current Objective
-Run a light-tier Hyperresearch prompt in the generated Codex workflow, then run
-a full-tier prompt after the light-tier path succeeds. Local install,
-generated-file, backend-command, Codex read-only exec, pytest, and ruff checks
-are passing.
+Run a full-tier Hyperresearch prompt after reviewing the light-tier dry-run
+findings. Local install, generated-file, backend-command, Codex read-only exec,
+Codex light-tier exec, pytest, and ruff checks are passing.
 
 ## Confirmed Decisions
 
@@ -48,10 +47,38 @@ are passing.
       `.agents/skills/hyperresearch/SKILL.md` and
       `.codex/agents/hyperresearch-fetcher.toml`, and reports the resolved
       backend command path.
+- [x] `codex exec` bounded light-tier run completed in
+      `/private/tmp/hpr-codex-light-20260507`, using the generated
+      `AGENTS.md`, Codex skills, and absolute `hyperresearch ... --json`
+      backend path.
+- [x] Light-tier run created the expected canonical artifacts:
+      `research/query-codex-parity.md`, `research/scaffold.md`,
+      `research/prompt-decomposition.json`, `research/temp/coverage-matrix.md`,
+      `research/temp/search-plan.md`, `research/temp/coverage-gaps.md`,
+      `research/notes/final_report_codex-parity.md`,
+      `research/polish-log.json`, `research/readability-recommendations.json`,
+      and `research/readability-decisions.json`.
+- [x] Light-tier validation ran `sync --json`, `lint --json`, `repair --json`,
+      and final `status --json`; final status was `ok: true`, `notes.total: 15`,
+      and `broken_links: 0`.
+
+## Dry-Run Findings
+
+- Step 2 obeyed the local-only constraint and skipped external fetcher waves,
+  academic APIs, URL queues, and live web search.
+- Steps 15 and 16 were approximated manually in the same Codex turn instead of
+  spawning custom agents; custom-agent delegation remains unverified.
+- `hyperresearch search "" --tag codex-parity --json` returned zero rows in the
+  dry-run vault, while non-empty scoped searches such as `search "backend"
+  --tag codex-parity --json` returned the seed note. This may matter because
+  existing workflow prompts often use empty-query tag surveys.
+- Final lint had zero errors and 11 warnings, mostly expected metadata/curation
+  warnings from small dry-run artifacts and the seed note.
 
 ## Next Action
 
 Manual dry-run:
 
-1. Run a light-tier hyperresearch prompt.
-2. Run a full-tier prompt after the light-tier path succeeds.
+1. Decide whether to patch the empty-query tag survey behavior/prompt before
+   running a full-tier dry run.
+2. Run a full-tier prompt after that decision.
