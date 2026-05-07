@@ -57,6 +57,30 @@ prompt-level restriction and preserve the same artifact/log checks.
 Do not use direct source-page browsing as a substitute for captured provenance.
 Use `{hpr} fetch` for source pages.
 
+## Mechanical Claude-to-Codex translations
+
+The source skill text below remains the canonical workflow definition. When it
+uses Claude Code terms, apply these translations mechanically:
+
+- `Skill(skill: "hyperresearch-N-name")` means activate the Codex skill
+  `$hyperresearch-N-name`, or load
+  `.agents/skills/hyperresearch-N-name/SKILL.md`.
+- `Task`, `Task tool`, `Task call`, or `subagent_type: NAME` means spawn the
+  project-scoped Codex custom agent named `NAME` from `.codex/agents/NAME.toml`.
+  When the step asks for multiple subagents in one message, spawn them in
+  parallel, wait for every result, then consolidate before continuing.
+- `TodoWrite` means maintain a visible Codex progress checklist and also write
+  the same durable step state to `research/temp/orchestrator-progress.md`.
+  Update both after every step; after compaction, recover from the progress
+  file plus the canonical artifacts on disk.
+- Claude model labels such as Opus/Sonnet are mapped in the generated
+  `.codex/agents/*.toml` files. If a generated custom agent omits a model, it
+  inherits the parent Codex session model.
+
+Do not edit generated Codex skills as the source of truth. Improve the bundled
+Claude skill/subagent definitions, then rerun `{hpr} install --codex . --json`
+to regenerate the Codex adapter files.
+
 ---
 """
 
@@ -80,6 +104,12 @@ research artifact contract.
 ---
 
 """
+
+CODEX_MODEL_MAP = {
+    "opus": ("gpt-5.5", "xhigh"),
+    "sonnet": ("gpt-5.4", "high"),
+    "haiku": ("gpt-5.4-mini", "medium"),
+}
 
 
 @dataclass(frozen=True)
@@ -142,12 +172,32 @@ def _adapt_codex_skill(content: str, hpr_path: str) -> str:
     content = content.replace("hyperresearch init . --json", f"{hpr_posix} init . --json")
     content = content.replace("hyperresearch install --steps-only . --json", f"{hpr_posix} install --codex . --json")
     content = content.replace("hyperresearch note show <id1> <id2> ... -j", f"{hpr_posix} note show <id1> <id2> ... -j")
+    content = _translate_codex_todo_terms(content)
     preamble = CODEX_SKILL_PREAMBLE.format(hpr=hpr_posix)
     if content.startswith("---"):
         parts = content.split("---", 2)
         if len(parts) == 3:
             return f"---{parts[1]}---\n\n{preamble}\n{parts[2].lstrip()}"
     return f"{preamble}\n{content}"
+
+
+def _translate_codex_todo_terms(content: str) -> str:
+    """Translate common Claude workflow terms to Codex execution wording."""
+    replacements = {
+        "Task results": "subagent results",
+        "Task result": "subagent result",
+        "Task prompt": "subagent prompt",
+        "Task calls": "Codex custom-agent spawns",
+        "Task call": "Codex custom-agent spawn",
+        "Task tool": "Codex custom-agent spawning",
+        "TodoWrite list": "Codex progress checklist and `research/temp/orchestrator-progress.md`",
+        "TodoWrite": "Codex progress checklist",
+        "todo list": "progress checklist",
+        "todos": "progress items",
+    }
+    for source, target in replacements.items():
+        content = content.replace(source, target)
+    return content
 
 
 def _install_codex_agents(vault_root: Path, hpr_path: str) -> str | None:
@@ -204,15 +254,22 @@ def _render_codex_agent_toml(agent_markdown: str) -> str:
     tools = str(meta.get("tools", "parent"))
     sandbox_mode = _sandbox_for_tools(tools)
     developer_instructions = CODEX_AGENT_PREAMBLE.format(model=model, tools=tools) + body.strip() + "\n"
+    codex_model, reasoning_effort = _codex_model_for_claude_model(model)
 
     lines = [
         f"name = {_toml_string(name)}",
         f"description = {_toml_string(description)}",
+        *([f"model = {_toml_string(codex_model)}"] if codex_model else []),
+        *([f"model_reasoning_effort = {_toml_string(reasoning_effort)}"] if reasoning_effort else []),
         f"sandbox_mode = {_toml_string(sandbox_mode)}",
         f"developer_instructions = {_toml_string(developer_instructions)}",
         "",
     ]
     return "\n".join(lines)
+
+
+def _codex_model_for_claude_model(model: str) -> tuple[str | None, str | None]:
+    return CODEX_MODEL_MAP.get(model.lower(), (None, None))
 
 
 def _split_claude_agent(agent_markdown: str) -> tuple[dict[str, Any], str]:

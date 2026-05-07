@@ -20,6 +20,16 @@ def test_install_codex_workflow_creates_entry_and_step_skills(tmp_vault):
     assert ".agents/skills" in entry_body
     assert "/opt/hyperresearch/bin/hyperresearch install --codex . --json" in entry_body
     assert "/opt/hyperresearch/bin/hyperresearch ... --json" in entry_body
+    assert "Mechanical Claude-to-Codex translations" in entry_body
+    assert "Codex custom agent named `NAME`" in entry_body
+    assert "research/temp/orchestrator-progress.md" in entry_body
+    assert "Codex progress checklist" in entry_body
+    assert "Seed the Codex progress checklist" in entry_body
+    assert "Seed the TodoWrite list" not in entry_body
+    assert "Subagent spawn contract (applies to every Codex custom-agent spawn)" in entry_body
+    assert "applies to every Task call" not in entry_body
+    assert "subagent prompt" in entry_body
+    assert "Task prompt" not in entry_body
 
     for skill_name in _HYPERRESEARCH_STEP_SKILLS:
         skill_path = tmp_vault.root / ".agents" / "skills" / skill_name / "SKILL.md"
@@ -57,12 +67,16 @@ def test_install_codex_workflow_creates_custom_agents(tmp_vault):
 
     patcher = tomllib.loads((agents_dir / "hyperresearch-patcher.toml").read_text(encoding="utf-8"))
     assert patcher["name"] == "hyperresearch-patcher"
+    assert patcher["model"] == "gpt-5.5"
+    assert patcher["model_reasoning_effort"] == "xhigh"
     assert patcher["sandbox_mode"] == "workspace-write"
     assert "Read + Edit" in patcher["developer_instructions"]
     assert "regenerat" in patcher["developer_instructions"].lower()
 
     source_analyst = tomllib.loads((agents_dir / "hyperresearch-source-analyst.toml").read_text(encoding="utf-8"))
     assert source_analyst["name"] == "hyperresearch-source-analyst"
+    assert source_analyst["model"] == "gpt-5.4"
+    assert source_analyst["model_reasoning_effort"] == "high"
     assert source_analyst["sandbox_mode"] == "workspace-write"
     assert "Hyperresearch" in source_analyst["developer_instructions"]
 
