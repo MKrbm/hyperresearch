@@ -68,10 +68,10 @@ Codex light-tier exec, pytest, and ruff checks are passing.
   academic APIs, URL queues, and live web search.
 - Steps 15 and 16 were approximated manually in the same Codex turn instead of
   spawning custom agents; custom-agent delegation remains unverified.
-- `hyperresearch search "" --tag codex-parity --json` returned zero rows in the
-  dry-run vault, while non-empty scoped searches such as `search "backend"
-  --tag codex-parity --json` returned the seed note. This may matter because
-  existing workflow prompts often use empty-query tag surveys.
+- `hyperresearch search "" --tag codex-parity --json` originally returned zero
+  rows because an empty string was passed through SQLite FTS5 `MATCH`; this is
+  fixed by treating empty queries as structured note-listing queries while still
+  applying tag/status/type/path filters.
 - Final lint had zero errors and 11 warnings, mostly expected metadata/curation
   warnings from small dry-run artifacts and the seed note.
 
@@ -79,6 +79,6 @@ Codex light-tier exec, pytest, and ruff checks are passing.
 
 Manual dry-run:
 
-1. Decide whether to patch the empty-query tag survey behavior/prompt before
-   running a full-tier dry run.
-2. Run a full-tier prompt after that decision.
+1. Verify Codex custom-agent/subagent delegation with a small bounded spawn
+   before running an expensive full-tier dry run.
+2. Run a full-tier prompt after subagent delegation is confirmed.

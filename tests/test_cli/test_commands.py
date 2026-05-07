@@ -159,6 +159,18 @@ def test_search_text(vault_dir: Path):
     assert data["data"]["total"] >= 1
 
 
+def test_search_empty_query_with_tag_filter(vault_dir: Path):
+    os.chdir(vault_dir)
+    runner.invoke(app, ["note", "new", "Tagged Guide", "--tag", "codex-parity"])
+    runner.invoke(app, ["sync"])
+
+    result = runner.invoke(app, ["search", "", "--tag", "codex-parity", "--json"])
+    assert result.exit_code == 0
+    data = json.loads(result.output)
+    ids = {r["id"] for r in data["data"]["results"]}
+    assert "tagged-guide" in ids
+
+
 def test_graph_broken(vault_dir: Path):
     os.chdir(vault_dir)
     # Create a note with a broken link
