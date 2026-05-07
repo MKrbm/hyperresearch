@@ -1,15 +1,15 @@
 # Current Status
 
 ## Phase
-Construction complete / Codex light-tier dry-run complete
+Construction complete / Codex full-tier dry-run ready
 
 ## Active Unit
 None
 
 ## Current Objective
-Run a full-tier Hyperresearch prompt after reviewing the light-tier dry-run
-findings. Local install, generated-file, backend-command, Codex read-only exec,
-Codex light-tier exec, pytest, and ruff checks are passing.
+Run a full-tier Codex dry run now that local install, generated-file,
+backend-command, read-only exec, light-tier exec, custom-agent delegation,
+pytest, and ruff checks are passing.
 
 ## Confirmed Decisions
 
@@ -31,6 +31,7 @@ Codex light-tier exec, pytest, and ruff checks are passing.
 - [x] Unit-01: Codex Install Surface
 - [x] Unit-02: Codex Workflow Parity
 - [x] Unit-03: Verification and Hardening
+- [x] Unit-04: Codex Subagent Delegation Verification
 
 ## Latest Verification
 
@@ -66,13 +67,22 @@ Codex light-tier exec, pytest, and ruff checks are passing.
       `TodoWrite`, and durable progress logging.
 - [x] Codex custom agents now map Claude `model: sonnet` to `gpt-5.4`/`high`
       and `model: opus` to `gpt-5.5`/`xhigh` in generated `.codex/agents/*.toml`.
+- [x] `codex exec` bounded custom-agent delegation run completed in
+      `/private/tmp/hpr-codex-subagent-20260507`, spawned
+      `hyperresearch-patcher`, and changed only
+      `research/notes/final_report_patcher-smoke.md` and
+      `research/patch-log.json`.
+- [x] The patcher smoke run applied one critical dialectic finding by changing
+      the backend sentence to the existing Hyperresearch CLI with JSON output
+      and recorded the finding in `patch-log.json` with no skips or conflicts.
 
 ## Dry-Run Findings
 
 - Step 2 obeyed the local-only constraint and skipped external fetcher waves,
   academic APIs, URL queues, and live web search.
-- Steps 15 and 16 were approximated manually in the same Codex turn instead of
-  spawning custom agents; custom-agent delegation remains unverified.
+- The first light-tier dry run approximated steps 15 and 16 manually in the
+  same Codex turn; the later Unit-04 patcher smoke test confirmed that generated
+  Codex custom-agent delegation works for a bounded edit task.
 - `hyperresearch search "" --tag codex-parity --json` originally returned zero
   rows because an empty string was passed through SQLite FTS5 `MATCH`; this is
   fixed by treating empty queries as structured note-listing queries while still
@@ -87,6 +97,6 @@ Codex light-tier exec, pytest, and ruff checks are passing.
 
 Manual dry-run:
 
-1. Verify Codex custom-agent/subagent delegation with a small bounded spawn
-   before running an expensive full-tier dry run.
-2. Run a full-tier prompt after subagent delegation is confirmed.
+1. Run a full-tier Codex prompt in a disposable vault.
+2. Compare the resulting artifacts, lint output, and subagent behavior against
+   the Claude workflow expectations.
