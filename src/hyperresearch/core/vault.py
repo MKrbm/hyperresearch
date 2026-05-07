@@ -67,9 +67,9 @@ class Vault:
     def temp_dir(self) -> Path:
         """Sidelined notes (link-auto-resolution stubs, agent-drift artifacts).
 
-        Sibling of `notes_dir` and `index_dir`. Files here ARE still synced into
-        the DB (so wiki-link targets resolve), but they're kept out of `notes/`
-        so that directory listings of research content stay clean.
+        Sibling of `notes_dir` and `index_dir`. Note-like files here are synced
+        into the DB so wiki-link targets resolve, but workflow staging artifacts
+        are skipped by sync so repair/enrichment does not rewrite them as notes.
         """
         return self.research_dir / "temp"
 

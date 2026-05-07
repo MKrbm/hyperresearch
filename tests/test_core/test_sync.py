@@ -123,3 +123,72 @@ def test_sync_excludes_research_root_staging_files(tmp_vault):
     assert "scaffold.md" not in added_names
     assert "comparisons.md" not in added_names
     assert "synthesis.md" not in added_names
+
+
+def test_sync_excludes_temp_workflow_staging_files(tmp_vault):
+    """Workflow markdown under research/temp/ is addressed directly by path.
+
+    It should not become a note just because repair/sync ran. This preserves
+    durable progress files without polluting them with auto-generated
+    frontmatter, tags, summaries, or promotion status.
+    """
+    from hyperresearch.core.note import write_note
+
+    write_note(tmp_vault.notes_dir, "Real Note", body="# Real\n")
+
+    temp = tmp_vault.temp_dir
+    (temp / "orchestrator-progress.md").write_text(
+        "# Orchestrator Progress\n\n- [x] Step 1\n",
+        encoding="utf-8",
+    )
+    (temp / "evidence-digest.md").write_text("# Evidence Digest\n", encoding="utf-8")
+    (temp / "source-analysis-example.md").write_text("# Source Analysis\n", encoding="utf-8")
+    (temp / "scratch.md").write_text("# Plain temp scratch\n", encoding="utf-8")
+
+    plan = compute_sync_plan(tmp_vault)
+    added_names = [p.name for p in plan.to_add]
+
+    assert "real-note.md" in added_names
+    assert "orchestrator-progress.md" not in added_names
+    assert "evidence-digest.md" not in added_names
+    assert "source-analysis-example.md" not in added_names
+    assert "scratch.md" not in added_names
+
+
+def test_sync_keeps_frontmatter_temp_notes(tmp_vault):
+    """Temp stubs are real notes and must still sync for link resolution."""
+    from hyperresearch.core.note import write_note
+
+    write_note(
+        tmp_vault.temp_dir,
+        "Stub Topic",
+        body="# Stub Topic\n\nTemporary note.",
+        note_id="stub-topic",
+        status="draft",
+        summary="Stub note.",
+    )
+
+    plan = compute_sync_plan(tmp_vault)
+    added_names = [p.name for p in plan.to_add]
+
+    assert "stub-topic.md" in added_names
+
+
+def test_sync_excludes_known_temp_workflow_artifacts_even_with_frontmatter(tmp_vault):
+    """Existing polluted workflow artifacts should age out of the DB."""
+    progress = tmp_vault.temp_dir / "orchestrator-progress.md"
+    progress.write_text(
+        "---\n"
+        "title: Untitled\n"
+        "id: orchestrator-progress\n"
+        "status: evergreen\n"
+        "type: note\n"
+        "---\n\n"
+        "# Orchestrator Progress\n\n- [x] Step 1\n",
+        encoding="utf-8",
+    )
+
+    plan = compute_sync_plan(tmp_vault)
+    added_names = [p.name for p in plan.to_add]
+
+    assert "orchestrator-progress.md" not in added_names

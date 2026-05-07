@@ -1,15 +1,15 @@
 # Current Status
 
 ## Phase
-Construction complete / Codex full-tier dry-run complete
+Construction complete / Codex staging hygiene hardening complete
 
 ## Active Unit
-Unit-06 candidate: Staging Artifact Hygiene and Runtime Hardening
+Unit-07 candidate: Post-Hardening Codex Install Smoke
 
 ## Current Objective
-Convert Unit-05 full-tier findings into the next implementation unit. The main
-remaining issue is not subagent delegation; it is staging/progress artifact
-hygiene after sync/repair touches `research/temp/*.md`.
+Verify the staging artifact hygiene fix against a regenerated Codex install and
+decide whether another bounded full-tier run is necessary or whether focused
+repair/sync smoke coverage is enough.
 
 ## Confirmed Decisions
 
@@ -33,6 +33,7 @@ hygiene after sync/repair touches `research/temp/*.md`.
 - [x] Unit-03: Verification and Hardening
 - [x] Unit-04: Codex Subagent Delegation Verification
 - [x] Unit-05: Codex Full-Tier Local Dry Run
+- [x] Unit-06: Staging Artifact Hygiene
 
 ## Latest Verification
 
@@ -91,6 +92,19 @@ hygiene after sync/repair touches `research/temp/*.md`.
       `lint --json` ok with 0 errors / 55 warnings / 1 info, and
       `status --json` ok with 48 notes, 962 links, 0 broken links, and
       0 orphan notes.
+- [x] Sync now skips Hyperresearch workflow staging markdown under
+      `research/temp/`, including durable progress files, drafts, synthesis
+      staging files, and source-analysis/interim-report scratch files.
+- [x] Frontmatter-backed temp notes such as broken-link stubs still sync, so
+      wiki-link resolution behavior is preserved.
+- [x] Unit-06 verification passed:
+      `uv run pytest tests/test_core/test_sync.py -q`,
+      `uv run pytest tests/test_cli/test_commands.py -q`,
+      `uv run pytest tests/ -q`, and `.venv/bin/ruff check src tests`.
+- [x] Unit-06 disposable-vault smoke passed in
+      `/private/tmp/hpr-unit06-smoke-20260507`: `repair --json` left
+      `research/temp/orchestrator-progress.md` unmodified, while
+      `research/temp/stub-target.md` remained synced and searchable.
 
 ## Dry-Run Findings
 
@@ -114,12 +128,15 @@ hygiene after sync/repair touches `research/temp/*.md`.
   `research/temp/*.md` files as notes and inserted frontmatter/status/tag
   metadata into progress and staging files, including
   `orchestrator-progress.md`.
+- Unit-06 fixed this class of drift by treating known temp workflow markdown
+  and frontmatter-less temp markdown as path-addressed artifacts rather than
+  synced notes.
 - Full-tier source breadth could not be evaluated under local-only constraints;
   fetcher/search waves were skipped and recorded as limitations rather than
   silently simulated.
 
 ## Next Action
 
-Plan Unit-06 around staging artifact hygiene and runtime hardening: keep
-progress/scaffold artifacts durable without letting sync/repair corrupt their
-metadata, and reduce full-tier stdout/noise where practical.
+Choose the next hardening target: either reduce full-tier stdout/diff noise or
+rerun a smaller post-fix Codex smoke to confirm generated skills still guide
+agents away from treating temp workflow files as notes.
