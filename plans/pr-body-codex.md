@@ -102,10 +102,27 @@ Passed:
 - `codex exec --skip-git-repo-check --sandbox workspace-write --json` smoke
   against the packaged 0.9.0 Codex install
 
-Final Codex smoke result:
+Additional live Codex smoke on 2026-05-08:
+
+- `codex-cli 0.129.0`
+- `uv run --no-sync hyperresearch --version` returned `hyperresearch v0.9.0`.
+- `uv run --no-sync hyperresearch install --codex
+  /private/tmp/hpr-codex-pr-smoke-20260508.59i0eK --json` completed with
+  `"ok": true`.
+- `codex exec --skip-git-repo-check --sandbox workspace-write --json` was then
+  run inside that generated Codex project and successfully executed the
+  Hyperresearch backend status command.
+
+Final Codex smoke result from the live Codex run:
 
 ```text
-AGENTS_LOADED=yes
+AGENTS_FILE=yes
+ENTRY_SKILL_FILE=yes
+HOOKS_FILE=yes
+CONFIG_FILE=yes
+FETCHER_AGENT_FILE=yes
+SKILL_COUNT=17
+AGENT_COUNT=14
 STATUS_OK=true
 NOTES_TOTAL=0
 ```
