@@ -1,16 +1,16 @@
 # Current Status
 
 ## Phase
-Construction complete through Unit-15
+Construction complete through Unit-16
 
 ## Active Unit
-No active Unit. Unit-15 completed as PR / release docs.
+No active Unit. Unit-16 completed final verification; PR creation is in progress.
 
 ## Current Objective
-Prepare final verification and PR creation while preserving the existing CLI
-backend boundary. MCP and backend rewrites remain out of scope. Codex support
-has now been verified from built wheel/sdist artifacts, from a uv-installed
-dogfood environment executed through Codex, and documented for release.
+Prepare the upstream PR while preserving the existing CLI backend boundary.
+MCP and backend rewrites remain out of scope. Codex support has been verified
+from clean 0.9.0 wheel/sdist artifacts, a uv-installed wheel, packaged
+`install --codex`, and Codex exec.
 
 ## Confirmed Decisions
 
@@ -44,6 +44,7 @@ dogfood environment executed through Codex, and documented for release.
 - [x] Unit-13: Release Packaging Smoke
 - [x] Unit-14: uv Codex Dogfood Smoke
 - [x] Unit-15: PR / Release Docs
+- [x] Unit-16: Final Verification and PR
 
 ## Latest Verification
 
@@ -222,6 +223,23 @@ dogfood environment executed through Codex, and documented for release.
 - [x] Package metadata and `hyperresearch --version` source now report `0.9.0`.
 - [x] `plans/pr-release-notes-codex.md` records PR/release summary,
       compatibility notes, verification, and known limits.
+- [x] Unit-16 full verification passed:
+      `.venv/bin/python -m pytest tests/ -q` and
+      `.venv/bin/ruff check src tests`.
+- [x] Unit-16 built clean 0.9.0 artifacts under
+      `/private/tmp/hpr-dist-0.9.0-20260508`.
+- [x] Unit-16 fixed sdist hygiene so untracked local AI-DLC/reference scratch
+      files and `.DS_Store` do not enter the source distribution.
+- [x] Unit-16 updated generated Codex config from deprecated
+      `[features].codex_hooks` to current `[features].hooks`.
+- [x] Rebuilt 0.9.0 wheel installed into
+      `/private/tmp/hpr-final-0.9.0-venv2-20260508` and reported
+      `hyperresearch v0.9.0`.
+- [x] Packaged 0.9.0 `install --codex` generated a clean vault at
+      `/private/tmp/hpr-final-codex-0.9.0-hooks-20260508.3xX0r8` with
+      17 Codex skills, 14 custom agents, and `hooks = true`.
+- [x] Final `codex exec --sandbox workspace-write` smoke reported
+      `AGENTS_LOADED=yes`, `STATUS_OK=true`, and `NOTES_TOTAL=0`.
 
 ## Dry-Run Findings
 
@@ -280,9 +298,12 @@ dogfood environment executed through Codex, and documented for release.
 - Non-interactive `codex exec` dogfood commands that run Hyperresearch backend
   commands should use `--sandbox workspace-write`; SQLite status/sync paths may
   create WAL/cache files even when the command is logically read-only.
+- Codex CLI 0.128.0 reports `[features].codex_hooks` as deprecated; generated
+  config now uses `[features].hooks = true`.
 
 ## Next Action
 
-Run final full checks, rebuild and smoke-test 0.9.0 wheel/sdist artifacts, then
-create the PR. Do not change Claude-dependent CLI/backend/MCP surfaces unless
-the user explicitly broadens scope.
+Push branch `codex` to `origin` and create the upstream PR against
+`jordan-gibbs/hyperresearch:main`. The local `gh` CLI is not installed, so use
+the GitHub compare URL or API after push. Do not change Claude-dependent
+CLI/backend/MCP surfaces unless the user explicitly broadens scope.

@@ -114,7 +114,8 @@ def test_install_codex_workflow_creates_repo_local_hooks(tmp_vault):
     assert "git rev-parse" not in command
 
     config = tomllib.loads(config_path.read_text(encoding="utf-8"))
-    assert config["features"]["codex_hooks"] is True
+    assert config["features"]["hooks"] is True
+    assert "codex_hooks" not in config["features"]
 
     script = script_path.read_text(encoding="utf-8")
     assert 'HPR = "/opt/hyperresearch/bin/hyperresearch"' in script
@@ -134,7 +135,8 @@ def test_codex_hook_config_preserves_existing_config(tmp_vault):
     config = tomllib.loads(config_path.read_text(encoding="utf-8"))
     assert config["tools"]["web_search"] is False
     assert config["features"]["other_feature"] is True
-    assert config["features"]["codex_hooks"] is True
+    assert config["features"]["hooks"] is True
+    assert "codex_hooks" not in config["features"]
 
 
 def test_codex_hook_script_emits_session_and_fetch_guidance(tmp_vault, tmp_path):

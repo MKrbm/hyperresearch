@@ -59,6 +59,8 @@ model.
 - Direct generated hook-script SessionStart and Bash PreToolUse smoke
 - uv-installed wheel dogfood smoke
 - `codex exec --sandbox workspace-write` backend status smoke
+- Rebuilt 0.9.0 artifact smoke after switching generated Codex config to the
+  current `[features].hooks = true` flag
 
 ## Known Limits
 

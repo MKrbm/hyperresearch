@@ -306,9 +306,9 @@ def _render_codex_hooks_json(script_path: Path) -> str:
 
 
 def _ensure_codex_hooks_feature(content: str) -> str:
-    """Return config.toml content with [features].codex_hooks set true."""
+    """Return config.toml content with current Codex hooks feature enabled."""
     if not content.strip():
-        return "[features]\ncodex_hooks = true\n"
+        return "[features]\nhooks = true\n"
 
     lines = content.splitlines()
     features_start: int | None = None
@@ -323,14 +323,30 @@ def _ensure_codex_hooks_feature(content: str) -> str:
 
     if features_start is None:
         suffix = "\n" if content.endswith("\n") else "\n\n"
-        return f"{content}{suffix}[features]\ncodex_hooks = true\n"
+        return f"{content}{suffix}[features]\nhooks = true\n"
 
+    hooks_idx: int | None = None
+    legacy_idxs: list[int] = []
     for idx in range(features_start + 1, features_end):
-        if re.match(r"^\s*codex_hooks\s*=", lines[idx]):
-            lines[idx] = "codex_hooks = true"
-            return "\n".join(lines) + "\n"
+        if re.match(r"^\s*hooks\s*=", lines[idx]):
+            hooks_idx = idx
+        elif re.match(r"^\s*codex_hooks\s*=", lines[idx]):
+            legacy_idxs.append(idx)
 
-    lines.insert(features_start + 1, "codex_hooks = true")
+    if hooks_idx is not None:
+        lines[hooks_idx] = "hooks = true"
+        for idx in reversed(legacy_idxs):
+            del lines[idx]
+        return "\n".join(lines) + "\n"
+
+    if legacy_idxs:
+        first = legacy_idxs[0]
+        lines[first] = "hooks = true"
+        for idx in reversed(legacy_idxs[1:]):
+            del lines[idx]
+        return "\n".join(lines) + "\n"
+
+    lines.insert(features_start + 1, "hooks = true")
     return "\n".join(lines) + "\n"
 
 

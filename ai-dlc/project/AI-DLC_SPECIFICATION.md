@@ -6,7 +6,7 @@
 to Hyperresearch while preserving the existing Python backend and Claude Code
 workflow semantics.
 
-**Status**: Construction is complete through Unit-15. Current scope is Codex
+**Status**: Construction is complete through Unit-16. Current scope is Codex
 parity with the Claude workflow, without MCP or backend rewrites.
 
 This file is the project-specific AI-DLC source of truth. Earlier template or
@@ -114,6 +114,7 @@ commit. The commit must avoid unrelated user or OS-generated files.
 | Unit-13 | Release Packaging Smoke | Verify wheel/sdist packaging, installed CLI entrypoints, packaged `install --codex`, and dogfood steps before PR. |
 | Unit-14 | uv Codex Dogfood Smoke | Verify uv-based wheel install, packaged `install --codex`, and minimal `codex exec` backend execution. |
 | Unit-15 | PR / Release Docs | Add user-facing Codex install docs, changelog, version metadata, and PR/release notes. |
+| Unit-16 | Final Verification and PR | Run final tests, rebuild/smoke 0.9.0 artifacts, fix release-blocking packaging/runtime issues, and prepare PR. |
 
 ## 4. Backend Preservation Rules
 
@@ -198,7 +199,7 @@ Run targeted tests first, then broader tests for cross-cutting install changes.
 
 ## 8. Current Next Action
 
-Unit-00 through Unit-15 are complete.
+Unit-00 through Unit-16 are complete.
 
 Current operating rule:
 
@@ -217,9 +218,11 @@ Current operating rule:
   that run Hyperresearch backend commands
 - treat `0.9.0` as the Codex adapter release candidate version until final
   verification says otherwise
+- generate Codex hook feature flags as `[features].hooks = true`, not the
+  deprecated `[features].codex_hooks`
 - do not change Claude-dependent CLI/backend/MCP surfaces for Codex parity work
   unless the user explicitly broadens the scope
 
-Next work is final verification, rebuilt 0.9.0 packaging smoke, and PR
-creation. MCP and backend changes are not current goals because the project is
-reproducing the Claude workflow, which uses the CLI backend directly.
+Next work is pushing `codex` and creating the upstream PR. MCP and backend
+changes are not current goals because the project is reproducing the Claude
+workflow, which uses the CLI backend directly.
