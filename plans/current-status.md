@@ -1,17 +1,16 @@
 # Current Status
 
 ## Phase
-Construction complete through Unit-12
+Construction complete through Unit-13
 
 ## Active Unit
-No active Unit. Unit-12 completed as clean Codex install UX smoke.
+No active Unit. Unit-13 completed as release packaging smoke.
 
 ## Current Objective
-Keep Codex parity focused on reproducing the Claude workflow without changing
-Claude-dependent backend surfaces. MCP and fetch/backend changes remain out of
-current scope. Codex hooks are generated guardrails and have been runtime-
-verified in a trusted Codex project. The installer now explains the Codex
-project-trust requirement for generated hooks.
+Prepare the Codex parity branch for dogfood, PR, and release while preserving
+the existing CLI backend boundary. MCP and backend rewrites remain out of
+scope. Codex support has now been verified from built wheel/sdist artifacts,
+not only from the source checkout.
 
 ## Confirmed Decisions
 
@@ -42,6 +41,7 @@ project-trust requirement for generated hooks.
 - [x] Unit-10: Codex Hook Runtime Smoke
 - [x] Unit-11: Trusted Codex Hook Runtime Verification
 - [x] Unit-12: Clean Codex Install UX Smoke
+- [x] Unit-13: Release Packaging Smoke
 
 ## Latest Verification
 
@@ -183,6 +183,25 @@ project-trust requirement for generated hooks.
       copyable trusted-project TOML snippet.
 - [x] Human `install --codex` output now prints the same trust snippet without
       Rich markup swallowing the `[projects."..."]` header.
+- [x] Unit-13 built `dist/hyperresearch-0.8.5.tar.gz` and
+      `dist/hyperresearch-0.8.5-py3-none-any.whl`.
+- [x] The wheel and sdist include `hyperresearch/codex_model_map.yaml` and the
+      bundled `hyperresearch/skills/*.md` source files needed by
+      `install --codex`.
+- [x] The wheel installed into the supported Python 3.13 venv
+      `/private/tmp/hpr-release-smoke-venv-313-20260508`.
+- [x] The installed `hyperresearch` and `hpr` console scripts both returned
+      `hyperresearch v0.8.5`.
+- [x] The packaged CLI generated a clean Codex install in
+      `/private/tmp/hpr-packaged-codex-install-20260508.538y4Z`, including
+      `AGENTS.md`, 17 Codex skills, 14 custom agents, Codex config, hooks JSON,
+      and hook script.
+- [x] Generated packaged Codex artifacts reference the wheel-installed backend
+      path `/private/tmp/hpr-release-smoke-venv-313-20260508/bin/hyperresearch`.
+- [x] Packaged disposable-vault `status --json` returned `ok: true` with
+      0 notes, 0 broken links, and `last_sync: never`.
+- [x] Direct generated hook-script invocation passed for SessionStart and Bash
+      PreToolUse reminders from the packaged install.
 
 ## Dry-Run Findings
 
@@ -235,10 +254,14 @@ project-trust requirement for generated hooks.
   now carry the durable trust guidance.
 - Codex tool-lock parity remains a layered prompt/sandbox/lint contract, not a
   proven hard equivalent of Claude agent frontmatter tool allowlists.
+- The machine's default `python3` is Python 3.14.3, which is outside the
+  declared `>=3.11,<3.14` support range. Release and dogfood smoke commands
+  should pin Python 3.11, 3.12, or 3.13.
 
 ## Next Action
 
-Run the next Codex-only parity hardening task, preferably a small live-fetch
-smoke that verifies Codex uses `hyperresearch fetch ... --json` for external
-sources. Do not change Claude-dependent CLI/backend/MCP surfaces unless the
-user explicitly broadens scope.
+Dogfood the packaged Codex install from the built wheel in a user-controlled
+project, then prepare the PR/release layer: user-facing README/CHANGELOG updates,
+final full checks, release notes, and a PR description. Do not change
+Claude-dependent CLI/backend/MCP surfaces unless the user explicitly broadens
+scope.
