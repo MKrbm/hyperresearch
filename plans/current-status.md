@@ -1,16 +1,16 @@
 # Current Status
 
 ## Phase
-Construction complete through Unit-14
+Construction complete through Unit-15
 
 ## Active Unit
-No active Unit. Unit-14 completed as uv Codex dogfood smoke.
+No active Unit. Unit-15 completed as PR / release docs.
 
 ## Current Objective
-Prepare the Codex parity branch for PR and release while preserving the
-existing CLI backend boundary. MCP and backend rewrites remain out of scope.
-Codex support has now been verified from built wheel/sdist artifacts and from
-a uv-installed dogfood environment executed through Codex.
+Prepare final verification and PR creation while preserving the existing CLI
+backend boundary. MCP and backend rewrites remain out of scope. Codex support
+has now been verified from built wheel/sdist artifacts, from a uv-installed
+dogfood environment executed through Codex, and documented for release.
 
 ## Confirmed Decisions
 
@@ -43,6 +43,7 @@ a uv-installed dogfood environment executed through Codex.
 - [x] Unit-12: Clean Codex Install UX Smoke
 - [x] Unit-13: Release Packaging Smoke
 - [x] Unit-14: uv Codex Dogfood Smoke
+- [x] Unit-15: PR / Release Docs
 
 ## Latest Verification
 
@@ -215,6 +216,12 @@ a uv-installed dogfood environment executed through Codex.
       `/private/tmp/hpr-dogfood-uv-venv-20260508/bin/hyperresearch`.
 - [x] `codex exec --sandbox workspace-write` executed the uv-installed backend
       `hyperresearch status --json` path successfully from the dogfood vault.
+- [x] README now documents separate Claude Code and Codex install flows.
+- [x] CHANGELOG now includes a `0.9.0` Codex adapter release section dated
+      2026-05-08.
+- [x] Package metadata and `hyperresearch --version` source now report `0.9.0`.
+- [x] `plans/pr-release-notes-codex.md` records PR/release summary,
+      compatibility notes, verification, and known limits.
 
 ## Dry-Run Findings
 
@@ -276,6 +283,6 @@ a uv-installed dogfood environment executed through Codex.
 
 ## Next Action
 
-Prepare the PR/release layer: user-facing README/CHANGELOG updates, final full
-checks, release notes, and a PR description. Do not change Claude-dependent
-CLI/backend/MCP surfaces unless the user explicitly broadens scope.
+Run final full checks, rebuild and smoke-test 0.9.0 wheel/sdist artifacts, then
+create the PR. Do not change Claude-dependent CLI/backend/MCP surfaces unless
+the user explicitly broadens scope.
