@@ -31,11 +31,3 @@ GEMINI.md
 
 # Per-vault research output
 research/
-
-# Local AI-DLC/reference scratch copied during Codex porting. The tracked
-# project source of truth is ai-dlc/project/AI-DLC_SPECIFICATION.md.
-CODEX_PORTING_GUIDE.md
-ai-dlc/*
-!ai-dlc/project/
-ai-dlc/project/*
-!ai-dlc/project/AI-DLC_SPECIFICATION.md
