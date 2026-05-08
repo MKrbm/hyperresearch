@@ -1,15 +1,15 @@
 # Current Status
 
 ## Phase
-Construction complete through Unit-08
+Construction complete through Unit-09
 
 ## Active Unit
-No active Unit. Unit-08 completed as Codex parent-regeneration test hardening.
+No active Unit. Unit-09 completed as Codex hook generation.
 
 ## Current Objective
 Keep Codex parity focused on reproducing the Claude workflow without changing
 Claude-dependent backend surfaces. MCP and fetch/backend changes remain out of
-current scope.
+current scope. Codex hooks are now generated as guardrails.
 
 ## Confirmed Decisions
 
@@ -36,6 +36,7 @@ current scope.
 - [x] Unit-06: Staging Artifact Hygiene
 - [x] Unit-07: Codex Supervision Hardening And Post-Fix Full-Tier Verification
 - [x] Unit-08: Codex Parent Regeneration Tests
+- [x] Unit-09: Codex Hook Generation
 
 ## Latest Verification
 
@@ -131,6 +132,12 @@ current scope.
 - [x] Unit-08 added regression coverage that generated Codex custom agents
       refresh from the current parent Claude subagent definition on
       `install --codex`.
+- [x] Unit-09 added Codex hook generation to `install --codex`:
+      `.codex/config.toml`, `.codex/hooks.json`, and
+      `.codex/hooks/hyperresearch_pre_tool_use.py`.
+- [x] Unit-09 hook script emits SessionStart guidance and Bash PreToolUse
+      guidance for direct web-fetch-looking commands while ignoring
+      `hyperresearch fetch`.
 
 ## Dry-Run Findings
 
@@ -172,6 +179,7 @@ current scope.
 - MCP exists as a Hyperresearch integration surface, and Codex documents MCP
   support, but MCP remains out of scope for this Claude-workflow reproduction
   effort unless a later ADR changes that decision.
+- Codex hooks are guardrails/context injection, not hard security boundaries.
 - Codex tool-lock parity remains a layered prompt/sandbox/lint contract, not a
   proven hard equivalent of Claude agent frontmatter tool allowlists.
 

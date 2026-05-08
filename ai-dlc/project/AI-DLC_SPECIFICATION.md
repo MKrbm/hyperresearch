@@ -6,7 +6,7 @@
 to Hyperresearch while preserving the existing Python backend and Claude Code
 workflow semantics.
 
-**Status**: Construction is complete through Unit-08. Current scope is Codex
+**Status**: Construction is complete through Unit-09. Current scope is Codex
 parity with the Claude workflow, without MCP or backend rewrites.
 
 This file is the project-specific AI-DLC source of truth. Earlier template or
@@ -107,6 +107,7 @@ commit. The commit must avoid unrelated user or OS-generated files.
 | Unit-06 | Staging Artifact Hygiene | Keep workflow scratch markdown under `research/temp/` out of the synced note index while preserving real temp notes and stubs. |
 | Unit-07 | Codex Supervision Hardening And Post-Fix Full-Tier Verification | Clean up supervision findings, make model mapping data-driven, harden adapter guidance, and rerun full-tier verification. |
 | Unit-08 | Codex Parent Regeneration Tests | Strengthen tests proving Codex skills and custom agents regenerate from the current parent Claude definitions. |
+| Unit-09 | Codex Hook Generation | Generate repo-local Codex SessionStart and Bash PreToolUse guardrails without changing MCP or backend behavior. |
 
 ## 4. Backend Preservation Rules
 
@@ -145,7 +146,7 @@ Baseline official docs checked on 2026-05-07:
 | `AGENTS.md` | https://developers.openai.com/codex/guides/agents-md | Startup instruction discovery and managed block design. |
 | Skills | https://developers.openai.com/codex/skills | Repository skills live under `.agents/skills`; skills are loaded by progressive disclosure. |
 | Subagents | https://developers.openai.com/codex/subagents | Project-scoped custom agents live under `.codex/agents/*.toml`. |
-| Hooks | https://developers.openai.com/codex/hooks | Hooks can be useful guardrails but `PreToolUse` is not a complete enforcement boundary. |
+| Hooks | https://developers.openai.com/codex/hooks | Hooks are generated as Codex-side guardrails in Unit-09, but `PreToolUse` is not a complete enforcement boundary. |
 | Rules | https://developers.openai.com/codex/rules | Optional command-control analysis, not initial core. |
 | MCP | https://developers.openai.com/codex/mcp | Deferred improvement, not initial parity path. |
 
@@ -191,7 +192,7 @@ Run targeted tests first, then broader tests for cross-cutting install changes.
 
 ## 8. Current Next Action
 
-Unit-00 through Unit-08 are complete.
+Unit-00 through Unit-09 are complete.
 
 Current operating rule:
 

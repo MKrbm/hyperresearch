@@ -1,7 +1,7 @@
 # ADR-002: Defer Codex Hook Generation
 
 ## Status
-Accepted
+Superseded by ADR-003
 
 ## Context
 

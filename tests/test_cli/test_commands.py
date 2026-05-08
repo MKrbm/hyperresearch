@@ -56,6 +56,9 @@ def test_install_codex_json_creates_agents_md_without_claude_hooks(tmp_path: Pat
 
     assert not (root / ".claude").exists()
     assert not (root / ".hyperresearch" / "hook.js").exists()
+    assert (root / ".codex" / "hooks.json").exists()
+    assert (root / ".codex" / "hooks" / "hyperresearch_pre_tool_use.py").exists()
+    assert (root / ".codex" / "config.toml").exists()
     assert (root / ".agents" / "skills" / "hyperresearch" / "SKILL.md").exists()
     assert (root / ".agents" / "skills" / "hyperresearch-1-decompose" / "SKILL.md").exists()
     assert (root / ".codex" / "agents" / "hyperresearch-fetcher.toml").exists()

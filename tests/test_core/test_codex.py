@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import json
+import subprocess
+import sys
 import tomllib
 from importlib import resources
 
@@ -87,6 +90,106 @@ def test_install_codex_workflow_creates_custom_agents(tmp_vault):
     assert source_analyst["model_reasoning_effort"] == "high"
     assert source_analyst["sandbox_mode"] == "workspace-write"
     assert "Hyperresearch" in source_analyst["developer_instructions"]
+
+
+def test_install_codex_workflow_creates_repo_local_hooks(tmp_vault):
+    actions = install_codex_workflow(tmp_vault.root, "/opt/hyperresearch/bin/hyperresearch")
+    assert any(action.startswith("Codex: hooks") for action in actions)
+
+    hooks_path = tmp_vault.root / ".codex" / "hooks.json"
+    script_path = tmp_vault.root / ".codex" / "hooks" / "hyperresearch_pre_tool_use.py"
+    config_path = tmp_vault.root / ".codex" / "config.toml"
+
+    assert hooks_path.exists()
+    assert script_path.exists()
+    assert config_path.exists()
+
+    hooks = json.loads(hooks_path.read_text(encoding="utf-8"))
+    assert hooks["hooks"]["SessionStart"][0]["matcher"] == "startup|resume"
+    assert hooks["hooks"]["PreToolUse"][0]["matcher"] == "Bash"
+    assert ".codex/hooks/hyperresearch_pre_tool_use.py" in (
+        hooks["hooks"]["PreToolUse"][0]["hooks"][0]["command"]
+    )
+
+    config = tomllib.loads(config_path.read_text(encoding="utf-8"))
+    assert config["features"]["codex_hooks"] is True
+
+    script = script_path.read_text(encoding="utf-8")
+    assert 'HPR = "/opt/hyperresearch/bin/hyperresearch"' in script
+    assert "hyperresearch install --codex" in script
+
+
+def test_codex_hook_config_preserves_existing_config(tmp_vault):
+    config_path = tmp_vault.root / ".codex" / "config.toml"
+    config_path.parent.mkdir(parents=True, exist_ok=True)
+    config_path.write_text(
+        "[tools]\nweb_search = false\n\n[features]\nother_feature = true\ncodex_hooks = false\n",
+        encoding="utf-8",
+    )
+
+    install_codex_workflow(tmp_vault.root, "hyperresearch")
+
+    config = tomllib.loads(config_path.read_text(encoding="utf-8"))
+    assert config["tools"]["web_search"] is False
+    assert config["features"]["other_feature"] is True
+    assert config["features"]["codex_hooks"] is True
+
+
+def test_codex_hook_script_emits_session_and_fetch_guidance(tmp_vault, tmp_path):
+    install_codex_workflow(tmp_vault.root, "/opt/hyperresearch/bin/hyperresearch")
+    script_path = tmp_vault.root / ".codex" / "hooks" / "hyperresearch_pre_tool_use.py"
+
+    session = subprocess.run(
+        [sys.executable, str(script_path)],
+        input=json.dumps({"hook_event_name": "SessionStart", "cwd": str(tmp_vault.root)}),
+        text=True,
+        capture_output=True,
+        check=True,
+    )
+    session_data = json.loads(session.stdout)
+    context = session_data["hookSpecificOutput"]["additionalContext"]
+    assert "/opt/hyperresearch/bin/hyperresearch search" in context
+    assert "/opt/hyperresearch/bin/hyperresearch fetch" in context
+
+    direct_fetch = subprocess.run(
+        [sys.executable, str(script_path)],
+        input=json.dumps({
+            "hook_event_name": "PreToolUse",
+            "cwd": str(tmp_vault.root),
+            "tool_name": "Bash",
+            "tool_input": {"command": "curl https://example.com/article"},
+        }),
+        text=True,
+        capture_output=True,
+        check=True,
+    )
+    direct_fetch_data = json.loads(direct_fetch.stdout)
+    assert "/opt/hyperresearch/bin/hyperresearch fetch" in direct_fetch_data["systemMessage"]
+
+    hpr_fetch = subprocess.run(
+        [sys.executable, str(script_path)],
+        input=json.dumps({
+            "hook_event_name": "PreToolUse",
+            "cwd": str(tmp_vault.root),
+            "tool_name": "Bash",
+            "tool_input": {
+                "command": "/opt/hyperresearch/bin/hyperresearch fetch https://example.com/article --json"
+            },
+        }),
+        text=True,
+        capture_output=True,
+        check=True,
+    )
+    assert hpr_fetch.stdout == ""
+
+    outside_vault = subprocess.run(
+        [sys.executable, str(script_path)],
+        input=json.dumps({"hook_event_name": "SessionStart", "cwd": str(tmp_path)}),
+        text=True,
+        capture_output=True,
+        check=True,
+    )
+    assert outside_vault.stdout == ""
 
 
 def test_codex_model_mapping_is_loaded_from_resource():
