@@ -6,9 +6,13 @@
 to Hyperresearch while preserving the existing Python backend and Claude Code
 workflow semantics.
 
-**Status**: Inception complete enough to start Unit-00. Earlier contents of
-this file were copied from another project and are superseded for this
-repository by this specification and the ADRs under `design-artifacts/adrs/`.
+**Status**: Construction is complete through Unit-07. The next likely work is
+live-provider validation under a new Unit.
+
+This file is the project-specific AI-DLC source of truth. Earlier template or
+reference contents copied under `ai-dlc/` are not project facts unless they are
+tracked, explicitly referenced here, and consistent with `plans/current-status.md`
+and the ADRs under `design-artifacts/adrs/`.
 
 ---
 
@@ -21,6 +25,11 @@ At the start of every session, read in this order:
 3. Relevant ADRs under `design-artifacts/adrs/`
 4. The active `plans/unit-XX-*.md`
 5. The subsystem files and tests for the active Unit
+
+Do not treat untracked `ai-dlc/guide/`, `ai-dlc/template/`,
+`ai-dlc/project/decisions.md`, or `ai-dlc/project/customizations.md` files as
+current project policy. They may be upstream AI-DLC scaffolding. The current
+project policy is this file plus tracked ADRs and tracked Unit plans.
 
 Do not require routine user approval during Construction. The agent should
 continue through research, implementation, tests, and documentation unless one
@@ -93,6 +102,10 @@ commit. The commit must avoid unrelated user or OS-generated files.
 | Unit-01 | Codex Install Surface | Implement the explicit Codex install path and generated startup guidance. |
 | Unit-02 | Codex Workflow Parity | Generate/adapt entry skill, 16 step skills, custom agents, and hooks/policies. |
 | Unit-03 | Verification and Hardening | Test idempotency, file safety, Claude compatibility, and light/full dry-run procedures. |
+| Unit-04 | Codex Subagent Delegation Verification | Verify that generated Codex custom agents can perform bounded workflow edits. |
+| Unit-05 | Codex Full-Tier Local Dry Run | Run the generated workflow through all 16 steps under local-only constraints. |
+| Unit-06 | Staging Artifact Hygiene | Keep workflow scratch markdown under `research/temp/` out of the synced note index while preserving real temp notes and stubs. |
+| Unit-07 | Codex Supervision Hardening And Post-Fix Full-Tier Verification | Clean up supervision findings, make model mapping data-driven, harden adapter guidance, and rerun full-tier verification. |
 
 ## 4. Backend Preservation Rules
 
@@ -177,12 +190,14 @@ Run targeted tests first, then broader tests for cross-cutting install changes.
 
 ## 8. Current Next Action
 
-Unit-00 through Unit-03 are complete. The next step is manual Codex dry-run
-validation:
+Unit-00 through Unit-07 are complete.
 
-- install into a disposable vault with `hyperresearch install --codex --json`
-- confirm Codex loads `AGENTS.md` and `.agents/skills`
-- run a light-tier hyperresearch prompt
-- run a full-tier prompt after light-tier succeeds
-- use dry-run failures to decide whether hook reminders or prompt refinements
-  are needed
+Current operating rule:
+
+- keep the Claude skill/subagent definitions as the parent workflow source of
+  truth and regenerate Codex artifacts from them with `install --codex`
+- keep Codex model translation in `src/hyperresearch/codex_model_map.yaml`
+
+After Unit-07, the likely next Unit is live-provider validation: exercise
+source search/fetch/auth profiles and MCP-adjacent surfaces only if explicitly
+scoped, because local-only dry runs do not prove those external behaviors.

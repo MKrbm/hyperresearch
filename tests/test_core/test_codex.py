@@ -3,8 +3,11 @@
 from __future__ import annotations
 
 import tomllib
+from importlib import resources
 
-from hyperresearch.core.codex import install_codex_workflow
+import yaml
+
+from hyperresearch.core.codex import _codex_model_for_claude_model, install_codex_workflow
 from hyperresearch.core.hooks import _HYPERRESEARCH_STEP_SKILLS
 
 
@@ -24,6 +27,10 @@ def test_install_codex_workflow_creates_entry_and_step_skills(tmp_vault):
     assert "Codex custom agent named `NAME`" in entry_body
     assert "research/temp/orchestrator-progress.md" in entry_body
     assert "Codex progress checklist" in entry_body
+    assert "waves of at most 4 Codex custom agents" in entry_body
+    assert "There is no `hyperresearch note create` command" in entry_body
+    assert "/opt/hyperresearch/bin/hyperresearch note new ... --json" in entry_body
+    assert "Do not print full artifacts, large diffs" in entry_body
     assert "Seed the Codex progress checklist" in entry_body
     assert "Seed the TodoWrite list" not in entry_body
     assert "Subagent spawn contract (applies to every Codex custom-agent spawn)" in entry_body
@@ -79,6 +86,21 @@ def test_install_codex_workflow_creates_custom_agents(tmp_vault):
     assert source_analyst["model_reasoning_effort"] == "high"
     assert source_analyst["sandbox_mode"] == "workspace-write"
     assert "Hyperresearch" in source_analyst["developer_instructions"]
+
+
+def test_codex_model_mapping_is_loaded_from_resource():
+    resource = resources.files("hyperresearch").joinpath("codex_model_map.yaml")
+    mapping = yaml.safe_load(resource.read_text(encoding="utf-8"))
+
+    assert _codex_model_for_claude_model("opus") == (
+        mapping["opus"]["model"],
+        mapping["opus"]["model_reasoning_effort"],
+    )
+    assert _codex_model_for_claude_model("sonnet") == (
+        mapping["sonnet"]["model"],
+        mapping["sonnet"]["model_reasoning_effort"],
+    )
+    assert _codex_model_for_claude_model("unknown") == (None, None)
 
 
 def test_install_codex_workflow_idempotent(tmp_vault):

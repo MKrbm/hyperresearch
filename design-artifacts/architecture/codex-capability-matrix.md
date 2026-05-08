@@ -31,18 +31,23 @@ MCP is documented as a future improvement candidate, not an initial dependency.
 | Backend reads | Skills use `hyperresearch note show ... --json`. | Codex skills use the same CLI command. | Preserve. |
 | Source fetching | Skills require `hyperresearch fetch`, not direct WebFetch for source pages. | Codex instructions require `hyperresearch fetch`, not direct source-page browsing for captured sources. | Preserve. |
 | Lint and health gates | Skills and docs use `hyperresearch lint`, `repair`, `status`, `sync`. | Codex workflow uses the same CLI checks. | Preserve. |
-| Subagents | `.claude/agents/*.md` with role prompts and Claude tool frontmatter. | Project-scoped Codex custom agents in `.codex/agents/*.toml`, with parity prompts and explicit limitations. | Implement in Unit-02. |
-| Tool locks | Claude agent frontmatter can restrict tools for patcher/polish. | Codex equivalence must be verified. If hard locks are unavailable, use prompt policy plus logs/lint. | Analyze in Unit-02. |
+| Subagents | `.claude/agents/*.md` with role prompts and Claude tool frontmatter. | Project-scoped Codex custom agents in `.codex/agents/*.toml`, with parity prompts and explicit limitations. Generated skills cap parallel custom-agent waves at 4 agents after full-tier supervision hit a Codex thread limit with larger waves. | Implemented in Unit-02; wave cap added in Unit-07. |
+| Model labels | Claude subagents use labels such as `opus`, `sonnet`, and `haiku`. | Codex installer reads `src/hyperresearch/codex_model_map.yaml` and emits `model` / `model_reasoning_effort` in `.codex/agents/*.toml`. | Data-driven project policy; update the table when Codex model policy changes. |
+| Tool locks | Claude agent frontmatter can restrict tools for patcher/polish. | Codex generated agents use sandbox settings plus developer-instruction restrictions. Hard per-agent tool-lock equivalence is not proven by local dry runs; patch/polish behavior is also guarded by logs and lint. | Residual gap documented in Unit-07. |
 | Pre-tool reminder | Claude PreToolUse hook reminds on raw search/fetch tools. | No Codex hook in initial install. Guidance lives in `AGENTS.md` and skill adapter notes. | Deferred by ADR-002. |
-| Todo/progress | Claude skill references TodoWrite and disk artifacts. | Codex can use plan/tooling plus disk artifacts. Disk artifacts remain authoritative. | Preserve artifact recovery; adapt progress tool language. |
+| Todo/progress | Claude skill references TodoWrite and disk artifacts. | Codex can use plan/tooling plus disk artifacts. Disk artifacts remain authoritative. Generated skills require `research/temp/orchestrator-progress.md` for compaction recovery. | Preserve artifact recovery; adapt progress tool language. |
 | MCP | Available via `hyperresearch mcp`, but not the current Claude workflow path. | Deferred. Do not require MCP for initial Codex parity. | Future Unit. |
 | Rules | Not part of current Claude workflow. | Optional future command-control supplement. | Out of initial scope. |
 | Artifact contract | `research/...` paths are hard-coded across skills and lint rules. | Same paths. | Preserve. |
 | Claude compatibility | Existing `.claude` install must remain unchanged. | `install --codex` must not alter Claude install behavior except shared code paths tested for no regression. | Required in Unit-01 and Unit-03. |
 
-## Open Items For Unit-03 Or Future Units
+## Open Items For Future Units
 
 - Decide how to represent `/hyperresearch` if Codex does not support a directly
   equivalent slash command.
 - Consider Codex hooks later if dry-runs show repeated bypassing of the CLI
   fetch rule.
+- Validate live web search/fetch/authenticated Crawl4AI behavior separately;
+  local-only dry runs only prove the workflow mechanics.
+- Re-evaluate `src/hyperresearch/codex_model_map.yaml` when Codex model policy
+  changes.

@@ -1,15 +1,15 @@
 # Current Status
 
 ## Phase
-Construction complete / Codex staging hygiene hardening complete
+Construction complete through Unit-07
 
 ## Active Unit
-Unit-07 candidate: Post-Hardening Codex Install Smoke
+No active Unit. Unit-08 candidate: live-provider validation.
 
 ## Current Objective
-Verify the staging artifact hygiene fix against a regenerated Codex install and
-decide whether another bounded full-tier run is necessary or whether focused
-repair/sync smoke coverage is enough.
+Decide whether to start Unit-08 for live web/search/fetch/auth-profile and
+MCP-adjacent validation, or pause with the current local-only Codex parity
+implementation.
 
 ## Confirmed Decisions
 
@@ -34,6 +34,7 @@ repair/sync smoke coverage is enough.
 - [x] Unit-04: Codex Subagent Delegation Verification
 - [x] Unit-05: Codex Full-Tier Local Dry Run
 - [x] Unit-06: Staging Artifact Hygiene
+- [x] Unit-07: Codex Supervision Hardening And Post-Fix Full-Tier Verification
 
 ## Latest Verification
 
@@ -105,6 +106,25 @@ repair/sync smoke coverage is enough.
       `/private/tmp/hpr-unit06-smoke-20260507`: `repair --json` left
       `research/temp/orchestrator-progress.md` unmodified, while
       `research/temp/stub-target.md` remained synced and searchable.
+- [x] AI-DLC project policy is explicitly scoped to tracked
+      `ai-dlc/project/AI-DLC_SPECIFICATION.md`, tracked ADRs, and tracked Unit
+      plans; untracked AI-DLC reference scaffolding is not authoritative.
+- [x] Codex model mapping is package data in
+      `src/hyperresearch/codex_model_map.yaml` and is loaded by the Codex
+      installer when generating `.codex/agents/*.toml`.
+- [x] Post-hardening full-tier local-only `codex exec` completed in
+      `/private/tmp/hpr-codex-full-post-20260508` using a regenerated
+      `install --codex` workflow.
+- [x] Post-hardening full-tier run completed steps 1 through 16 and wrote
+      `research/notes/final_report_hyperresearch-codex-port.md`.
+- [x] Post-hardening final validation reported `sync --json` ok,
+      `repair --json` ok, workflow lint checks ok, `status --json` with
+      24 notes, 287 links, 0 broken links, and 0 orphan notes, and empty-search
+      path filtering found 0 synced `research/temp/*` workflow artifacts.
+- [x] Generated Codex skill adapter guidance now caps custom-agent waves at
+      4 agents, clarifies that new notes use `hyperresearch note new` rather
+      than `note create`, and discourages dumping large artifacts/diffs to
+      stdout.
 
 ## Dry-Run Findings
 
@@ -134,9 +154,21 @@ repair/sync smoke coverage is enough.
 - Full-tier source breadth could not be evaluated under local-only constraints;
   fetcher/search waves were skipped and recorded as limitations rather than
   silently simulated.
+- The post-hardening full-tier run initially hit a Codex agent-thread limit
+  when Step 2 attempted an overly large custom-agent wave; it recovered with
+  smaller waves, and Unit-07 now makes the wave cap explicit in generated
+  adapter notes.
+- The post-hardening run surfaced a stale command assumption,
+  `hyperresearch note create`; Unit-07 now documents `hyperresearch note new`
+  and `hyperresearch note update` in generated Codex skill notes.
+- Local-only dry runs still do not validate live web search/fetch,
+  authenticated Crawl4AI profiles, MCP tools, or external source-quality
+  behavior.
+- Codex tool-lock parity remains a layered prompt/sandbox/lint contract, not a
+  proven hard equivalent of Claude agent frontmatter tool allowlists.
 
 ## Next Action
 
-Choose the next hardening target: either reduce full-tier stdout/diff noise or
-rerun a smaller post-fix Codex smoke to confirm generated skills still guide
-agents away from treating temp workflow files as notes.
+Choose the next Unit scope. The highest-value candidate is live-provider
+validation because local-only dry runs have now covered install, generated
+skills, custom-agent delegation, full-tier mechanics, and temp-artifact hygiene.

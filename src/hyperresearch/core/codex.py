@@ -9,6 +9,8 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
+from functools import lru_cache
+from importlib import resources
 from pathlib import Path
 from typing import Any
 
@@ -68,7 +70,9 @@ uses Claude Code terms, apply these translations mechanically:
 - `Task`, `Task tool`, `Task call`, or `subagent_type: NAME` means spawn the
   project-scoped Codex custom agent named `NAME` from `.codex/agents/NAME.toml`.
   When the step asks for multiple subagents in one message, spawn them in
-  parallel, wait for every result, then consolidate before continuing.
+  parallel in waves of at most 4 Codex custom agents. Wait for and close each
+  completed wave before starting the next one, then consolidate all results
+  before continuing.
 - `TodoWrite` means maintain a visible Codex progress checklist and also write
   the same durable step state to `research/temp/orchestrator-progress.md`.
   Update both after every step; after compaction, recover from the progress
@@ -76,6 +80,14 @@ uses Claude Code terms, apply these translations mechanically:
 - Claude model labels such as Opus/Sonnet are mapped in the generated
   `.codex/agents/*.toml` files. If a generated custom agent omits a model, it
   inherits the parent Codex session model.
+- There is no `hyperresearch note create` command. Use
+  `{hpr} note new ... --json` for new notes, preferably with `--body-file`
+  when writing existing bodies, and `{hpr} note update ... --json` for metadata
+  or body edits.
+- Do not print full artifacts, large diffs, long JSON bodies, or final report
+  drafts to stdout. Write artifacts to their required paths and report concise
+  summaries, counts, and changed filenames. For inspection, prefer targeted
+  `rg`, `jq`, `wc`, or `sed` snippets.
 
 Do not edit generated Codex skills as the source of truth. Improve the bundled
 Claude skill/subagent definitions, then rerun `{hpr} install --codex . --json`
@@ -105,11 +117,7 @@ research artifact contract.
 
 """
 
-CODEX_MODEL_MAP = {
-    "opus": ("gpt-5.5", "xhigh"),
-    "sonnet": ("gpt-5.4", "high"),
-    "haiku": ("gpt-5.4-mini", "medium"),
-}
+CODEX_MODEL_MAP_RESOURCE = "codex_model_map.yaml"
 
 
 @dataclass(frozen=True)
@@ -172,6 +180,7 @@ def _adapt_codex_skill(content: str, hpr_path: str) -> str:
     content = content.replace("hyperresearch init . --json", f"{hpr_posix} init . --json")
     content = content.replace("hyperresearch install --steps-only . --json", f"{hpr_posix} install --codex . --json")
     content = content.replace("hyperresearch note show <id1> <id2> ... -j", f"{hpr_posix} note show <id1> <id2> ... -j")
+    content = content.replace("hyperresearch note create", f"{hpr_posix} note new")
     content = _translate_codex_todo_terms(content)
     preamble = CODEX_SKILL_PREAMBLE.format(hpr=hpr_posix)
     if content.startswith("---"):
@@ -268,8 +277,33 @@ def _render_codex_agent_toml(agent_markdown: str) -> str:
     return "\n".join(lines)
 
 
+@lru_cache(maxsize=1)
+def _load_codex_model_map() -> dict[str, tuple[str, str | None]]:
+    """Load project policy for Claude-label to Codex-model translation."""
+    resource = resources.files("hyperresearch").joinpath(CODEX_MODEL_MAP_RESOURCE)
+    raw = yaml.safe_load(resource.read_text(encoding="utf-8")) or {}
+    if not isinstance(raw, dict):
+        return {}
+
+    model_map: dict[str, tuple[str, str | None]] = {}
+    for claude_label, codex_settings in raw.items():
+        if not isinstance(claude_label, str) or not isinstance(codex_settings, dict):
+            continue
+        model = codex_settings.get("model")
+        reasoning_effort = codex_settings.get("model_reasoning_effort")
+        if not isinstance(model, str) or not model:
+            continue
+        if not isinstance(reasoning_effort, str) or not reasoning_effort:
+            reasoning_effort = None
+        model_map[claude_label.lower()] = (model, reasoning_effort)
+    return model_map
+
+
 def _codex_model_for_claude_model(model: str) -> tuple[str | None, str | None]:
-    return CODEX_MODEL_MAP.get(model.lower(), (None, None))
+    mapped = _load_codex_model_map().get(model.lower())
+    if mapped is None:
+        return None, None
+    return mapped
 
 
 def _split_claude_agent(agent_markdown: str) -> tuple[dict[str, Any], str]:
