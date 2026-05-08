@@ -252,7 +252,7 @@ def _install_codex_hooks(vault_root: Path, hpr_path: str) -> str | None:
         changed.append(".codex/hooks/hyperresearch_pre_tool_use.py")
 
     hooks_path = vault_root / ".codex" / "hooks.json"
-    hooks_config = _render_codex_hooks_json()
+    hooks_config = _render_codex_hooks_json(script_path)
     if not hooks_path.exists() or hooks_path.read_text(encoding="utf-8") != hooks_config:
         hooks_path.write_text(hooks_config, encoding="utf-8")
         changed.append(".codex/hooks.json")
@@ -270,11 +270,8 @@ def _install_codex_hooks(vault_root: Path, hpr_path: str) -> str | None:
     return f"Codex: hooks ({', '.join(changed)})"
 
 
-def _render_codex_hooks_json() -> str:
-    command = (
-        'python3 "$(git rev-parse --show-toplevel)/'
-        '.codex/hooks/hyperresearch_pre_tool_use.py"'
-    )
+def _render_codex_hooks_json(script_path: Path) -> str:
+    command = f"python3 {_shell_quote(script_path.as_posix())}"
     config = {
         "hooks": {
             "SessionStart": [
@@ -335,6 +332,10 @@ def _ensure_codex_hooks_feature(content: str) -> str:
 
     lines.insert(features_start + 1, "codex_hooks = true")
     return "\n".join(lines) + "\n"
+
+
+def _shell_quote(value: str) -> str:
+    return "'" + value.replace("'", "'\"'\"'") + "'"
 
 
 def _install_codex_entry_skill(vault_root: Path, hpr_path: str) -> str | None:

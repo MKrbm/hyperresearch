@@ -1,7 +1,7 @@
 # Codex Capability Matrix
 
 Checked against OpenAI official Codex documentation on 2026-05-07.
-Codex hooks rechecked on 2026-05-08 for Unit-09.
+Codex hooks rechecked on 2026-05-08 for Units 09 and 10.
 
 - `AGENTS.md`: https://developers.openai.com/codex/guides/agents-md
 - Skills: https://developers.openai.com/codex/skills
@@ -35,7 +35,7 @@ MCP is documented as a future improvement candidate, not an initial dependency.
 | Subagents | `.claude/agents/*.md` with role prompts and Claude tool frontmatter. | Project-scoped Codex custom agents in `.codex/agents/*.toml`, with parity prompts and explicit limitations. Generated skills cap parallel custom-agent waves at 4 agents after full-tier supervision hit a Codex thread limit with larger waves. | Implemented in Unit-02; wave cap added in Unit-07. |
 | Model labels | Claude subagents use labels such as `opus`, `sonnet`, and `haiku`. | Codex installer reads `src/hyperresearch/codex_model_map.yaml` and emits `model` / `model_reasoning_effort` in `.codex/agents/*.toml`. | Data-driven project policy; update the table when Codex model policy changes. |
 | Tool locks | Claude agent frontmatter can restrict tools for patcher/polish. | Codex generated agents use sandbox settings plus developer-instruction restrictions. Hard per-agent tool-lock equivalence is not proven by local dry runs; patch/polish behavior is also guarded by logs and lint. | Residual gap documented in Unit-07. |
-| Pre-tool reminder | Claude PreToolUse hook reminds on raw search/fetch tools. | `install --codex` generates repo-local `.codex/hooks.json`, `.codex/config.toml`, and `.codex/hooks/hyperresearch_pre_tool_use.py` for SessionStart context and Bash direct-fetch reminders. | Implemented in Unit-09; ADR-003. |
+| Pre-tool reminder | Claude PreToolUse hook reminds on raw search/fetch tools. | `install --codex` generates repo-local `.codex/hooks.json`, `.codex/config.toml`, and `.codex/hooks/hyperresearch_pre_tool_use.py` for SessionStart context and Bash direct-fetch reminders. Unit-10 fixed the generated command to use an absolute hook script path. | Generated in Unit-09 and script-tested in Unit-10. Runtime hook execution was not observed in `codex exec` 0.128.0, so operational effectiveness remains unverified; ADR-003. |
 | Todo/progress | Claude skill references TodoWrite and disk artifacts. | Codex can use plan/tooling plus disk artifacts. Disk artifacts remain authoritative. Generated skills require `research/temp/orchestrator-progress.md` for compaction recovery. | Preserve artifact recovery; adapt progress tool language. |
 | MCP | Available via `hyperresearch mcp`, but not the current Claude workflow path. | Deferred. Do not require MCP for initial Codex parity. | Future Unit. |
 | Rules | Not part of current Claude workflow. | Optional future command-control supplement. | Out of initial scope. |
@@ -50,3 +50,5 @@ MCP is documented as a future improvement candidate, not an initial dependency.
   local-only dry runs only prove the workflow mechanics.
 - Re-evaluate `src/hyperresearch/codex_model_map.yaml` when Codex model policy
   changes.
+- Verify generated hooks in an interactive trusted Codex session, because
+  `codex exec` did not show hook lifecycle events during Unit-10.

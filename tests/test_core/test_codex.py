@@ -107,9 +107,11 @@ def test_install_codex_workflow_creates_repo_local_hooks(tmp_vault):
     hooks = json.loads(hooks_path.read_text(encoding="utf-8"))
     assert hooks["hooks"]["SessionStart"][0]["matcher"] == "startup|resume"
     assert hooks["hooks"]["PreToolUse"][0]["matcher"] == "Bash"
-    assert ".codex/hooks/hyperresearch_pre_tool_use.py" in (
-        hooks["hooks"]["PreToolUse"][0]["hooks"][0]["command"]
-    )
+    assert hooks["hooks"]["SessionStart"][0]["hooks"][0]["timeout"] == 30
+    command = hooks["hooks"]["PreToolUse"][0]["hooks"][0]["command"]
+    assert command.startswith("python3 ")
+    assert script_path.as_posix() in command
+    assert "git rev-parse" not in command
 
     config = tomllib.loads(config_path.read_text(encoding="utf-8"))
     assert config["features"]["codex_hooks"] is True

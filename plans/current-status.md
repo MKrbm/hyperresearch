@@ -1,15 +1,16 @@
 # Current Status
 
 ## Phase
-Construction complete through Unit-09
+Construction complete through Unit-10
 
 ## Active Unit
-No active Unit. Unit-09 completed as Codex hook generation.
+No active Unit. Unit-10 completed as Codex hook runtime smoke.
 
 ## Current Objective
 Keep Codex parity focused on reproducing the Claude workflow without changing
 Claude-dependent backend surfaces. MCP and fetch/backend changes remain out of
-current scope. Codex hooks are now generated as guardrails.
+current scope. Codex hooks are generated as guardrails, with runtime execution
+still unverified in `codex exec`.
 
 ## Confirmed Decisions
 
@@ -37,6 +38,7 @@ current scope. Codex hooks are now generated as guardrails.
 - [x] Unit-07: Codex Supervision Hardening And Post-Fix Full-Tier Verification
 - [x] Unit-08: Codex Parent Regeneration Tests
 - [x] Unit-09: Codex Hook Generation
+- [x] Unit-10: Codex Hook Runtime Smoke
 
 ## Latest Verification
 
@@ -138,6 +140,17 @@ current scope. Codex hooks are now generated as guardrails.
 - [x] Unit-09 hook script emits SessionStart guidance and Bash PreToolUse
       guidance for direct web-fetch-looking commands while ignoring
       `hyperresearch fetch`.
+- [x] Unit-10 rechecked OpenAI Codex hook docs on 2026-05-08 and kept the
+      documented hook handler `timeout` field.
+- [x] Unit-10 changed generated Codex hook commands to call
+      `.codex/hooks/hyperresearch_pre_tool_use.py` by absolute path, avoiding
+      the previous git-repository assumption.
+- [x] Unit-10 disposable-vault smoke used
+      `/private/tmp/hpr-codex-hook-runtime.RxOQLm` with `codex-cli 0.128.0`;
+      direct hook-script invocation passed for SessionStart and PreToolUse.
+- [x] Unit-10 `codex exec --json --enable codex_hooks` loaded generated
+      `AGENTS.md` and project skills, but did not emit hook lifecycle events or
+      inject hook context.
 
 ## Dry-Run Findings
 
@@ -180,11 +193,15 @@ current scope. Codex hooks are now generated as guardrails.
   support, but MCP remains out of scope for this Claude-workflow reproduction
   effort unless a later ADR changes that decision.
 - Codex hooks are guardrails/context injection, not hard security boundaries.
+- Codex hook files are generated and script-tested, but actual hook execution
+  was not observed in `codex exec` 0.128.0 even with hooks enabled,
+  git-initialized disposable vault, and attempted project trust overrides.
 - Codex tool-lock parity remains a layered prompt/sandbox/lint contract, not a
   proven hard equivalent of Claude agent frontmatter tool allowlists.
 
 ## Next Action
 
-Pause or choose the next Codex-only parity hardening task. Do not change
+Verify Codex hooks in an interactive trusted Codex session when available, or
+choose the next Codex-only parity hardening task. Do not change
 Claude-dependent CLI/backend/MCP surfaces unless the user explicitly broadens
 scope.

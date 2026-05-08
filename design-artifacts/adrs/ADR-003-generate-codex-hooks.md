@@ -14,6 +14,9 @@ OpenAI Codex hook documentation checked on 2026-05-08 says Codex supports
 repository hook configuration under `.codex/hooks.json`, gated by
 `[features].codex_hooks = true` in `.codex/config.toml`.
 
+Unit-10 rechecked the same docs and smoke-tested the generated files against
+local `codex-cli 0.128.0`.
+
 ## Decision
 
 `hyperresearch install --codex` will generate repo-local Codex hook files:
@@ -35,3 +38,13 @@ through `curl`, `wget`, or similar HTTP client usage.
 
 This is a guardrail, not a hard security boundary. It complements generated
 AGENTS.md, skills, custom agents, and lint checks.
+
+Unit-10 found one Codex-only generation issue: hook commands should not depend
+on `git rev-parse` because Hyperresearch vaults do not have to be git
+repositories. The generated command now uses the absolute hook script path.
+
+Unit-10 did not observe actual hook lifecycle events or injected hook context
+through `codex exec --json --enable codex_hooks`, even though generated
+AGENTS.md and project skills loaded. Treat runtime hook execution as unverified
+until an interactive trusted Codex session or a clarified `codex exec` trust
+path confirms it.
