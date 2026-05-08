@@ -46,12 +46,16 @@ def test_install_codex_json_creates_agents_md_without_claude_hooks(tmp_path: Pat
     assert data["data"]["hooks_installed"] == []
     assert data["data"]["crawl4ai"] == "skipped"
     assert data["data"]["codex_workflow"]
+    assert data["data"]["codex_trust"]["required_for_project_hooks"] is True
+    assert str(root).replace("\\", "/") in data["data"]["codex_trust"]["toml"]
 
     agents_path = root / "AGENTS.md"
     assert agents_path.exists()
     body = agents_path.read_text(encoding="utf-8")
     assert "hyperresearch for Codex" in body
     assert "hyperresearch ... --json" in body
+    assert "Codex Trust And Hooks" in body
+    assert "Until the project is trusted" in body
     assert "MCP is available" in body
 
     assert not (root / ".claude").exists()
@@ -62,6 +66,17 @@ def test_install_codex_json_creates_agents_md_without_claude_hooks(tmp_path: Pat
     assert (root / ".agents" / "skills" / "hyperresearch" / "SKILL.md").exists()
     assert (root / ".agents" / "skills" / "hyperresearch-1-decompose" / "SKILL.md").exists()
     assert (root / ".codex" / "agents" / "hyperresearch-fetcher.toml").exists()
+
+
+def test_install_codex_human_output_includes_trust_snippet(tmp_path: Path):
+    root = tmp_path / "codex-human"
+    result = runner.invoke(app, ["install", str(root), "--codex"])
+    assert result.exit_code == 0
+
+    assert "Codex trust:" in result.output
+    assert '[projects."' in result.output
+    assert 'codex-human"]' in result.output
+    assert 'trust_level = "trusted"' in result.output
 
 
 def test_install_codex_preserves_existing_agents_md(tmp_path: Path):

@@ -20,6 +20,8 @@ local `codex-cli 0.128.0`.
 Unit-11 added the disposable smoke vault to local Codex trusted projects and
 verified actual hook runtime execution.
 
+Unit-12 verified the clean first-run Codex UX from a new disposable vault.
+
 ## Decision
 
 `hyperresearch install --codex` will generate repo-local Codex hook files:
@@ -60,3 +62,9 @@ observed both `SessionStart` and Bash `PreToolUse` invocations.
 
 `codex exec --json` still did not expose hook lifecycle events as JSONL items,
 so future runtime verification should not rely only on event names.
+
+Unit-12 found that Codex's disabled-project warning is visible in the TUI but
+not durable model-visible workflow context. `install --codex` now records the
+trust requirement in generated `AGENTS.md` and prints a `codex_trust` JSON
+object plus human-readable TOML snippet. Hyperresearch still does not
+automatically trust projects on behalf of the user.

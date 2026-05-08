@@ -131,6 +131,16 @@ Prefer JSON output for all agent-facing calls.
 
 Primary backend pattern: `hyperresearch ... --json`.
 
+### Codex Trust And Hooks
+
+`install --codex` generated `.codex/hooks.json` and `.codex/config.toml`.
+Codex loads project-local hooks only after this project is trusted by Codex.
+If Codex reports that project-local config, hooks, and exec policies are
+disabled, trust this project in Codex before relying on hook reminders.
+
+Until the project is trusted, this `AGENTS.md` guidance and installed skills
+still load, but SessionStart and PreToolUse hook reminders do not.
+
 ### Backend Rules
 
 - Search the vault before fetching new sources.

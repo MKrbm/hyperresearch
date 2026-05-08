@@ -138,11 +138,13 @@ def install(
 
         doc_actions = inject_codex_agent_docs(root)
         workflow_actions = install_codex_workflow(root, hpr_path=hpr_path)
+        trust_hint = _codex_trust_hint(root)
         data = {
             "vault_path": str(vault.root),
             "vault": vault_action,
             "codex_agent_docs": doc_actions,
             "codex_workflow": workflow_actions,
+            "codex_trust": trust_hint,
             "hooks_installed": [],
             "crawl4ai": "skipped",
         }
@@ -167,6 +169,15 @@ def install(
             else:
                 console.print("[dim]Codex workflow already installed.[/]")
             console.print("\n[bold]Ready.[/] Codex will use hyperresearch through the CLI.")
+            console.print(
+                "[yellow]Codex trust:[/] Project-local hooks load only after Codex trusts this project."
+            )
+            console.print(
+                f"[dim]If Codex says project-local config/hooks are disabled, add this to "
+                f"{trust_hint['config_path']} or accept Codex's trust prompt:[/]"
+            )
+            for line in str(trust_hint["toml"]).splitlines():
+                console.print(f"  {line}", markup=False)
             console.print("[dim]Claude Code hooks, skills, and agents were not installed.[/]")
         return
 
@@ -220,6 +231,18 @@ def install(
 
         console.print("\n[bold]Ready.[/] Agents will now check the research base before web searches.")
         console.print("[dim]Tip: Run 'hyperresearch setup' for interactive configuration (profile, stealth, etc.)[/]")
+
+
+def _codex_trust_hint(root: Path) -> dict[str, str | bool]:
+    import json
+
+    project = str(root).replace("\\", "/")
+    toml = f"[projects.{json.dumps(project)}]\ntrust_level = \"trusted\""
+    return {
+        "required_for_project_hooks": True,
+        "config_path": str(Path.home() / ".codex" / "config.toml"),
+        "toml": toml,
+    }
 
 
 def _setup_crawl4ai(vault) -> str:

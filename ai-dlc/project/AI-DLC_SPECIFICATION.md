@@ -6,7 +6,7 @@
 to Hyperresearch while preserving the existing Python backend and Claude Code
 workflow semantics.
 
-**Status**: Construction is complete through Unit-11. Current scope is Codex
+**Status**: Construction is complete through Unit-12. Current scope is Codex
 parity with the Claude workflow, without MCP or backend rewrites.
 
 This file is the project-specific AI-DLC source of truth. Earlier template or
@@ -110,6 +110,7 @@ commit. The commit must avoid unrelated user or OS-generated files.
 | Unit-09 | Codex Hook Generation | Generate repo-local Codex SessionStart and Bash PreToolUse guardrails without changing MCP or backend behavior. |
 | Unit-10 | Codex Hook Runtime Smoke | Verify generated Codex hook files against local Codex runtime behavior, fix Codex-only hook generation issues, and document runtime gaps. |
 | Unit-11 | Trusted Codex Hook Runtime Verification | Confirm generated Codex hooks execute after explicit project trust and record the operational trust requirement. |
+| Unit-12 | Clean Codex Install UX Smoke | Verify first-run Codex install behavior from a clean project and add durable trust guidance to AGENTS and install output. |
 
 ## 4. Backend Preservation Rules
 
@@ -194,7 +195,7 @@ Run targeted tests first, then broader tests for cross-cutting install changes.
 
 ## 8. Current Next Action
 
-Unit-00 through Unit-11 are complete.
+Unit-00 through Unit-12 are complete.
 
 Current operating rule:
 
@@ -203,6 +204,9 @@ Current operating rule:
 - keep Codex model translation in `src/hyperresearch/codex_model_map.yaml`
 - treat Codex hooks as verified runtime guardrails only after the target project
   is explicitly trusted by Codex
+- expose Codex trust requirements in generated `AGENTS.md`, JSON install
+  output, and human install output rather than silently modifying user Codex
+  trust config
 - do not change Claude-dependent CLI/backend/MCP surfaces for Codex parity work
   unless the user explicitly broadens the scope
 

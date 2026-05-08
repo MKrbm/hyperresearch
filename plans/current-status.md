@@ -1,16 +1,17 @@
 # Current Status
 
 ## Phase
-Construction complete through Unit-11
+Construction complete through Unit-12
 
 ## Active Unit
-No active Unit. Unit-11 completed as trusted Codex hook runtime verification.
+No active Unit. Unit-12 completed as clean Codex install UX smoke.
 
 ## Current Objective
 Keep Codex parity focused on reproducing the Claude workflow without changing
 Claude-dependent backend surfaces. MCP and fetch/backend changes remain out of
 current scope. Codex hooks are generated guardrails and have been runtime-
-verified in a trusted Codex project.
+verified in a trusted Codex project. The installer now explains the Codex
+project-trust requirement for generated hooks.
 
 ## Confirmed Decisions
 
@@ -40,6 +41,7 @@ verified in a trusted Codex project.
 - [x] Unit-09: Codex Hook Generation
 - [x] Unit-10: Codex Hook Runtime Smoke
 - [x] Unit-11: Trusted Codex Hook Runtime Verification
+- [x] Unit-12: Clean Codex Install UX Smoke
 
 ## Latest Verification
 
@@ -165,6 +167,22 @@ verified in a trusted Codex project.
       `install --codex` after instrumentation.
 - [x] `.gitignore` now ignores `.codex/` and `.agents/` as generated per-user
       agent install outputs.
+- [x] Unit-12 clean install smoke passed in
+      `/private/tmp/hpr-codex-clean-ux-20260508.4N1pWs`, generating
+      `AGENTS.md`, 17 Codex skills, 14 custom agents, and Codex hook config.
+- [x] Unit-12 confirmed untrusted clean projects do not receive generated hook
+      context: `codex exec` answered `NO_HOOK_CONTEXT` before trust.
+- [x] Unit-12 confirmed Codex TUI shows the trust prompt and disabled
+      project-local config/hooks warning, but that warning is not durable
+      model-visible task context.
+- [x] Unit-12 confirmed trusted clean projects receive generated hook context:
+      `codex exec` answered `HOOK_VISIBLE` after adding the disposable vault to
+      local Codex trusted projects.
+- [x] Generated `AGENTS.md` now includes `Codex Trust And Hooks` guidance.
+- [x] `install --codex --json` now includes a `codex_trust` object with a
+      copyable trusted-project TOML snippet.
+- [x] Human `install --codex` output now prints the same trust snippet without
+      Rich markup swallowing the `[projects."..."]` header.
 
 ## Dry-Run Findings
 
@@ -212,11 +230,15 @@ verified in a trusted Codex project.
 - `codex exec --json` does not currently expose hook lifecycle events even when
   hooks are running; Unit-11 verified runtime execution through exact
   SessionStart context and disposable script instrumentation.
+- Codex's disabled-project warning is visible in the TUI but should not be
+  treated as model-visible workflow context; generated AGENTS and install output
+  now carry the durable trust guidance.
 - Codex tool-lock parity remains a layered prompt/sandbox/lint contract, not a
   proven hard equivalent of Claude agent frontmatter tool allowlists.
 
 ## Next Action
 
-Choose the next Codex-only parity hardening task. Do not change
-Claude-dependent CLI/backend/MCP surfaces unless the user explicitly broadens
-scope.
+Run the next Codex-only parity hardening task, preferably a small live-fetch
+smoke that verifies Codex uses `hyperresearch fetch ... --json` for external
+sources. Do not change Claude-dependent CLI/backend/MCP surfaces unless the
+user explicitly broadens scope.
