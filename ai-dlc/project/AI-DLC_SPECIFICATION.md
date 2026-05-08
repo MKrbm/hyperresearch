@@ -6,8 +6,8 @@
 to Hyperresearch while preserving the existing Python backend and Claude Code
 workflow semantics.
 
-**Status**: Construction is complete through Unit-07. The next likely work is
-live-provider validation under a new Unit.
+**Status**: Construction is complete through Unit-08. Current scope is Codex
+parity with the Claude workflow, without MCP or backend rewrites.
 
 This file is the project-specific AI-DLC source of truth. Earlier template or
 reference contents copied under `ai-dlc/` are not project facts unless they are
@@ -106,6 +106,7 @@ commit. The commit must avoid unrelated user or OS-generated files.
 | Unit-05 | Codex Full-Tier Local Dry Run | Run the generated workflow through all 16 steps under local-only constraints. |
 | Unit-06 | Staging Artifact Hygiene | Keep workflow scratch markdown under `research/temp/` out of the synced note index while preserving real temp notes and stubs. |
 | Unit-07 | Codex Supervision Hardening And Post-Fix Full-Tier Verification | Clean up supervision findings, make model mapping data-driven, harden adapter guidance, and rerun full-tier verification. |
+| Unit-08 | Codex Parent Regeneration Tests | Strengthen tests proving Codex skills and custom agents regenerate from the current parent Claude definitions. |
 
 ## 4. Backend Preservation Rules
 
@@ -190,14 +191,16 @@ Run targeted tests first, then broader tests for cross-cutting install changes.
 
 ## 8. Current Next Action
 
-Unit-00 through Unit-07 are complete.
+Unit-00 through Unit-08 are complete.
 
 Current operating rule:
 
 - keep the Claude skill/subagent definitions as the parent workflow source of
   truth and regenerate Codex artifacts from them with `install --codex`
 - keep Codex model translation in `src/hyperresearch/codex_model_map.yaml`
+- do not change Claude-dependent CLI/backend/MCP surfaces for Codex parity work
+  unless the user explicitly broadens the scope
 
-After Unit-07, the likely next Unit is live-provider validation: exercise
-source search/fetch/auth profiles and MCP-adjacent surfaces only if explicitly
-scoped, because local-only dry runs do not prove those external behaviors.
+Possible later work is Codex-only parity hardening. MCP and backend changes are
+not current goals because the project is reproducing the Claude workflow, which
+uses the CLI backend directly.

@@ -7,6 +7,7 @@ from importlib import resources
 
 import yaml
 
+from hyperresearch.core import codex as codex_module
 from hyperresearch.core.codex import _codex_model_for_claude_model, install_codex_workflow
 from hyperresearch.core.hooks import _HYPERRESEARCH_STEP_SKILLS
 
@@ -101,6 +102,64 @@ def test_codex_model_mapping_is_loaded_from_resource():
         mapping["sonnet"]["model_reasoning_effort"],
     )
     assert _codex_model_for_claude_model("unknown") == (None, None)
+
+
+def test_codex_skill_regenerates_from_current_claude_skill_source(tmp_vault, monkeypatch):
+    sources = {
+        "hyperresearch.md": "---\nname: hyperresearch\n---\n# Parent Skill v1\nUse TodoWrite.\n",
+    }
+
+    def read_skill_source(filename: str) -> str | None:
+        return sources.get(filename)
+
+    monkeypatch.setattr(codex_module, "_read_skill_source", read_skill_source)
+
+    install_codex_workflow(tmp_vault.root, "/opt/hpr")
+    entry = tmp_vault.root / ".agents" / "skills" / "hyperresearch" / "SKILL.md"
+    body = entry.read_text(encoding="utf-8")
+    assert "Parent Skill v1" in body
+    assert "Use Codex progress checklist." in body
+    assert "Use TodoWrite." not in body
+
+    sources["hyperresearch.md"] = "---\nname: hyperresearch\n---\n# Parent Skill v2\nUse Task prompt.\n"
+
+    actions = install_codex_workflow(tmp_vault.root, "/opt/hpr")
+    body = entry.read_text(encoding="utf-8")
+    assert "Codex: .agents/skills/hyperresearch/SKILL.md" in actions
+    assert "Parent Skill v2" in body
+    assert "Parent Skill v1" not in body
+    assert "subagent prompt" in body
+    assert "Task prompt" not in body
+
+
+def test_codex_agent_regenerates_from_current_claude_agent_source(tmp_vault, monkeypatch):
+    def agent_source(version: str) -> str:
+        return f"""---
+name: hyperresearch-fetcher
+description: Parent fetcher {version}
+model: sonnet
+tools: Read, Bash
+---
+Fetcher parent sentinel {version}. Run {{hpr_path}} fetch.
+"""
+
+    monkeypatch.setattr(codex_module, "RESEARCHER_AGENT", agent_source("v1"))
+
+    install_codex_workflow(tmp_vault.root, "/opt/hpr")
+    fetcher_path = tmp_vault.root / ".codex" / "agents" / "hyperresearch-fetcher.toml"
+    fetcher = tomllib.loads(fetcher_path.read_text(encoding="utf-8"))
+    assert fetcher["description"] == "Parent fetcher v1"
+    assert "Fetcher parent sentinel v1" in fetcher["developer_instructions"]
+    assert "/opt/hpr fetch" in fetcher["developer_instructions"]
+
+    monkeypatch.setattr(codex_module, "RESEARCHER_AGENT", agent_source("v2"))
+
+    actions = install_codex_workflow(tmp_vault.root, "/opt/hpr")
+    fetcher = tomllib.loads(fetcher_path.read_text(encoding="utf-8"))
+    assert "Codex: .codex/agents/*.toml (1 agents)" in actions
+    assert fetcher["description"] == "Parent fetcher v2"
+    assert "Fetcher parent sentinel v2" in fetcher["developer_instructions"]
+    assert "Fetcher parent sentinel v1" not in fetcher["developer_instructions"]
 
 
 def test_install_codex_workflow_idempotent(tmp_vault):

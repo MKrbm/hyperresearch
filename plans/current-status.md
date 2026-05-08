@@ -1,15 +1,15 @@
 # Current Status
 
 ## Phase
-Construction complete through Unit-07
+Construction complete through Unit-08
 
 ## Active Unit
-No active Unit. Unit-08 candidate: live-provider validation.
+No active Unit. Unit-08 completed as Codex parent-regeneration test hardening.
 
 ## Current Objective
-Decide whether to start Unit-08 for live web/search/fetch/auth-profile and
-MCP-adjacent validation, or pause with the current local-only Codex parity
-implementation.
+Keep Codex parity focused on reproducing the Claude workflow without changing
+Claude-dependent backend surfaces. MCP and fetch/backend changes remain out of
+current scope.
 
 ## Confirmed Decisions
 
@@ -35,6 +35,7 @@ implementation.
 - [x] Unit-05: Codex Full-Tier Local Dry Run
 - [x] Unit-06: Staging Artifact Hygiene
 - [x] Unit-07: Codex Supervision Hardening And Post-Fix Full-Tier Verification
+- [x] Unit-08: Codex Parent Regeneration Tests
 
 ## Latest Verification
 
@@ -125,6 +126,11 @@ implementation.
       4 agents, clarifies that new notes use `hyperresearch note new` rather
       than `note create`, and discourages dumping large artifacts/diffs to
       stdout.
+- [x] Unit-08 added regression coverage that generated Codex skills refresh
+      from the current parent Claude skill source on `install --codex`.
+- [x] Unit-08 added regression coverage that generated Codex custom agents
+      refresh from the current parent Claude subagent definition on
+      `install --codex`.
 
 ## Dry-Run Findings
 
@@ -162,13 +168,15 @@ implementation.
   `hyperresearch note create`; Unit-07 now documents `hyperresearch note new`
   and `hyperresearch note update` in generated Codex skill notes.
 - Local-only dry runs still do not validate live web search/fetch,
-  authenticated Crawl4AI profiles, MCP tools, or external source-quality
-  behavior.
+  authenticated Crawl4AI profiles, or external source-quality behavior.
+- MCP exists as a Hyperresearch integration surface, and Codex documents MCP
+  support, but MCP remains out of scope for this Claude-workflow reproduction
+  effort unless a later ADR changes that decision.
 - Codex tool-lock parity remains a layered prompt/sandbox/lint contract, not a
   proven hard equivalent of Claude agent frontmatter tool allowlists.
 
 ## Next Action
 
-Choose the next Unit scope. The highest-value candidate is live-provider
-validation because local-only dry runs have now covered install, generated
-skills, custom-agent delegation, full-tier mechanics, and temp-artifact hygiene.
+Pause or choose the next Codex-only parity hardening task. Do not change
+Claude-dependent CLI/backend/MCP surfaces unless the user explicitly broadens
+scope.
