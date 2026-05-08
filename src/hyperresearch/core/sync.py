@@ -18,7 +18,6 @@ from hyperresearch.core.patterns import (
 )
 
 _TEMP_WORKFLOW_ARTIFACT_NAMES = {
-    "contradiction-summary.md",
     "corpus-critic-results.md",
     "coverage-gaps.md",
     "coverage-matrix.md",
@@ -30,7 +29,6 @@ _TEMP_WORKFLOW_ARTIFACT_NAMES = {
     "draft-c-source-list.md",
     "draft-c.md",
     "evidence-digest.md",
-    "local-only-limitations.md",
     "orchestrator-notes.md",
     "orchestrator-progress.md",
     "post-critic-fetch-log.md",

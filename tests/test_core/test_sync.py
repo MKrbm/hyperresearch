@@ -1,6 +1,32 @@
 """Tests for the sync engine."""
 
-from hyperresearch.core.sync import compute_sync_plan, execute_sync
+from importlib import resources
+
+import pytest
+
+from hyperresearch.core.sync import (
+    _TEMP_WORKFLOW_ARTIFACT_NAMES,
+    _TEMP_WORKFLOW_ARTIFACT_PREFIXES,
+    compute_sync_plan,
+    execute_sync,
+)
+
+
+def _workflow_contract_text() -> str:
+    skills_dir = resources.files("hyperresearch").joinpath("skills")
+    skill_text = "\n".join(
+        path.read_text(encoding="utf-8")
+        for path in sorted(skills_dir.iterdir(), key=lambda item: item.name)
+        if path.name.endswith(".md")
+    )
+    core_dir = resources.files("hyperresearch").joinpath("core")
+    return "\n".join(
+        [
+            skill_text,
+            core_dir.joinpath("hooks.py").read_text(encoding="utf-8"),
+            core_dir.joinpath("codex.py").read_text(encoding="utf-8"),
+        ]
+    )
 
 
 def test_sync_adds_new_files(tmp_vault):
@@ -153,6 +179,65 @@ def test_sync_excludes_temp_workflow_staging_files(tmp_vault):
     assert "evidence-digest.md" not in added_names
     assert "source-analysis-example.md" not in added_names
     assert "scratch.md" not in added_names
+
+
+@pytest.mark.parametrize("artifact_name", sorted(_TEMP_WORKFLOW_ARTIFACT_NAMES))
+def test_sync_excludes_all_known_temp_workflow_artifact_names(tmp_vault, artifact_name):
+    """Every fixed workflow markdown name stays out of the note DB.
+
+    The frontmatter forces this test to exercise the explicit name denylist,
+    not the broader "frontmatter-less temp scratch" fallback.
+    """
+    artifact = tmp_vault.temp_dir / artifact_name
+    artifact_id = artifact_name.removesuffix(".md")
+    artifact.write_text(
+        "---\n"
+        f"title: {artifact_id}\n"
+        f"id: {artifact_id}\n"
+        "status: evergreen\n"
+        "type: note\n"
+        "---\n\n"
+        f"# {artifact_id}\n",
+        encoding="utf-8",
+    )
+
+    plan = compute_sync_plan(tmp_vault)
+    added_names = [p.name for p in plan.to_add]
+
+    assert artifact_name not in added_names
+
+
+@pytest.mark.parametrize("artifact_prefix", _TEMP_WORKFLOW_ARTIFACT_PREFIXES)
+def test_sync_excludes_all_known_temp_workflow_artifact_prefixes(tmp_vault, artifact_prefix):
+    """Every fixed workflow markdown prefix stays out of the note DB."""
+    artifact_name = f"{artifact_prefix}example.md"
+    artifact = tmp_vault.temp_dir / artifact_name
+    artifact_id = artifact_name.removesuffix(".md")
+    artifact.write_text(
+        "---\n"
+        f"title: {artifact_id}\n"
+        f"id: {artifact_id}\n"
+        "status: evergreen\n"
+        "type: note\n"
+        "---\n\n"
+        f"# {artifact_id}\n",
+        encoding="utf-8",
+    )
+
+    plan = compute_sync_plan(tmp_vault)
+    added_names = [p.name for p in plan.to_add]
+
+    assert artifact_name not in added_names
+
+
+def test_temp_workflow_artifact_denylist_matches_workflow_contracts():
+    """Hardcoded sync exclusions must correspond to workflow-authored paths."""
+    contract_text = _workflow_contract_text()
+    expected_refs = sorted(_TEMP_WORKFLOW_ARTIFACT_NAMES) + list(_TEMP_WORKFLOW_ARTIFACT_PREFIXES)
+
+    missing = [artifact for artifact in expected_refs if artifact not in contract_text]
+
+    assert missing == []
 
 
 def test_sync_keeps_frontmatter_temp_notes(tmp_vault):

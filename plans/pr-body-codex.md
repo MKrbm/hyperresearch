@@ -45,6 +45,23 @@ This PR intentionally keeps the Claude workflow as the parent source of truth.
 - Codex artifacts are generated from the bundled Claude definitions and add an
   adapter preamble plus mechanical translations for Codex.
 
+### Claude Path Risk Analysis
+
+Every shared-code change was audited for impact on the existing Claude
+workflow:
+
+| Change | Claude impact |
+|---|---|
+| `cli/install.py` `--codex` flag | None — gated by `if codex:` early return; default install path unchanged |
+| `Vault.init(inject_docs=...)` | None — new keyword arg defaults to `True` (existing behavior); only Codex install passes `False` |
+| `agent_docs.py` `inject_codex_agent_docs` | None — new function; existing `inject_agent_docs` and Claude `<!-- hyperresearch:start -->` markers untouched |
+| `search/fts.py` empty-query branch | None — `if not query.strip()` early return; non-empty FTS5 `MATCH` path unchanged |
+| `core/codex.py`, `codex_model_map.yaml` | None — new files; not reachable from the Claude install path |
+| `core/sync.py` `research/temp/` filter | **Affects Claude as well** — workflow scratch no longer syncs (intended fix; see Shared Backend Changes below) |
+
+Bundled Claude skill files, subagent definitions, and the PreToolUse hook
+script are byte-identical to `main`.
+
 ## Backend Boundary
 
 No MCP rewrite and no storage rewrite.
@@ -70,6 +87,44 @@ Codex parity dry runs and also clean up Claude workflow behavior:
   progress logs, draft scratch, evidence digests, and synthesis scratch files
   do not become searchable notes or get rewritten by repair. Frontmatter-backed
   temp stubs and real notes still sync for link resolution.
+
+### `research/temp/` two-category model
+
+Pre-fix, every `.md` under `research/temp/` was synced into the notes DB. That
+directory actually holds two distinct populations:
+
+1. **Workflow scratch** (no frontmatter, fixed names) — pipeline staging files
+   the 16-step workflow reads/writes by direct path:
+   - Step 2: `search-plan.md`, `scored-urls.md`
+   - Steps 3–7: `coverage-matrix.md`, `coverage-gaps.md`,
+     `redundancy-audit.md`
+   - Step 5: `interim-report-<locus>.md`, `source-analysis-<id>.md`
+   - Steps 8–9: `corpus-critic-results.md`, `evidence-digest.md`
+   - Step 10: `draft-angles.md`, `draft-{a,b,c}.md`,
+     `draft-{a,b,c}-source-list.md`
+   - Step 11: `synthesis-plan.md`, `synthesis-outline.md`,
+     `synthesis-conflicts.md`, `synthesis-pass1.md`
+   - Orchestrator: `orchestrator-notes.md`, `orchestrator-progress.md`,
+     `post-critic-fetch-log.md`
+2. **Frontmatter-backed sideline notes** — broken-link stubs auto-created by
+   `hyperresearch repair` (`cli/repair.py`) and agent-drift sidelines. These
+   need DB registration so wiki-link targets resolve.
+
+Treating category 1 as searchable notes meant enrichment auto-tagged them,
+repair could rewrite their bodies, and they leaked into `note list` / `search`
+results. The new `_is_temp_workflow_artifact` filter in `core/sync.py` skips
+category 1 by name list, prefix match (`interim-report-`, `source-analysis-`),
+or absent frontmatter, while category 2 keeps syncing normally.
+
+This applies to both Claude and Codex workflows. Users with non-frontmatter
+hand-authored markdown placed directly under `research/temp/` would no longer
+see those files synced — but that pattern was already outside the documented
+contract for that directory.
+
+The fixed-name sync exclusions are covered by tests both ways: every listed
+markdown artifact is excluded even if frontmatter was accidentally added, and
+every listed artifact/prefix must appear in the bundled workflow skills, hooks,
+or Codex adapter source so the denylist cannot silently drift.
 
 ## Codex Runtime Notes
 
