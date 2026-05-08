@@ -1,16 +1,16 @@
 # Current Status
 
 ## Phase
-Construction complete through Unit-13
+Construction complete through Unit-14
 
 ## Active Unit
-No active Unit. Unit-13 completed as release packaging smoke.
+No active Unit. Unit-14 completed as uv Codex dogfood smoke.
 
 ## Current Objective
-Prepare the Codex parity branch for dogfood, PR, and release while preserving
-the existing CLI backend boundary. MCP and backend rewrites remain out of
-scope. Codex support has now been verified from built wheel/sdist artifacts,
-not only from the source checkout.
+Prepare the Codex parity branch for PR and release while preserving the
+existing CLI backend boundary. MCP and backend rewrites remain out of scope.
+Codex support has now been verified from built wheel/sdist artifacts and from
+a uv-installed dogfood environment executed through Codex.
 
 ## Confirmed Decisions
 
@@ -42,6 +42,7 @@ not only from the source checkout.
 - [x] Unit-11: Trusted Codex Hook Runtime Verification
 - [x] Unit-12: Clean Codex Install UX Smoke
 - [x] Unit-13: Release Packaging Smoke
+- [x] Unit-14: uv Codex Dogfood Smoke
 
 ## Latest Verification
 
@@ -202,6 +203,18 @@ not only from the source checkout.
       0 notes, 0 broken links, and `last_sync: never`.
 - [x] Direct generated hook-script invocation passed for SessionStart and Bash
       PreToolUse reminders from the packaged install.
+- [x] Unit-14 created a uv dogfood venv at
+      `/private/tmp/hpr-dogfood-uv-venv-20260508` with Python 3.13.
+- [x] Unit-14 installed the built wheel into that uv venv and ran
+      `install --codex` into
+      `/private/tmp/hpr-dogfood-uv-codex-20260508.piQEF8`.
+- [x] The uv dogfood install generated `AGENTS.md`, 17 Codex skills, 14 custom
+      agents, Codex config, hooks JSON, and hook script.
+- [x] `codex exec` loaded the generated project context and reported
+      `AGENTS_LOADED=yes`, `SKILL_PRESENT=yes`, and backend path
+      `/private/tmp/hpr-dogfood-uv-venv-20260508/bin/hyperresearch`.
+- [x] `codex exec --sandbox workspace-write` executed the uv-installed backend
+      `hyperresearch status --json` path successfully from the dogfood vault.
 
 ## Dry-Run Findings
 
@@ -257,11 +270,12 @@ not only from the source checkout.
 - The machine's default `python3` is Python 3.14.3, which is outside the
   declared `>=3.11,<3.14` support range. Release and dogfood smoke commands
   should pin Python 3.11, 3.12, or 3.13.
+- Non-interactive `codex exec` dogfood commands that run Hyperresearch backend
+  commands should use `--sandbox workspace-write`; SQLite status/sync paths may
+  create WAL/cache files even when the command is logically read-only.
 
 ## Next Action
 
-Dogfood the packaged Codex install from the built wheel in a user-controlled
-project, then prepare the PR/release layer: user-facing README/CHANGELOG updates,
-final full checks, release notes, and a PR description. Do not change
-Claude-dependent CLI/backend/MCP surfaces unless the user explicitly broadens
-scope.
+Prepare the PR/release layer: user-facing README/CHANGELOG updates, final full
+checks, release notes, and a PR description. Do not change Claude-dependent
+CLI/backend/MCP surfaces unless the user explicitly broadens scope.
