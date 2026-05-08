@@ -81,6 +81,10 @@ local `codex-cli 0.128.0` runtime. Treat the Codex hook layer as generated but
 runtime-unverified until an interactive trusted Codex session or a clarified
 Codex exec trust path confirms it.
 
+Unit-11 resolved this finding: the missing condition was explicit Codex project
+trust. After the disposable vault was trusted, SessionStart and PreToolUse hook
+execution was observed.
+
 Generated `AGENTS.md`, skills, custom agents, and the `hyperresearch ... --json`
 backend path remain the primary verified Codex parity surfaces.
 

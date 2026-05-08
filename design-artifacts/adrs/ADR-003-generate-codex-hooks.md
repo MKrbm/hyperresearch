@@ -17,6 +17,9 @@ repository hook configuration under `.codex/hooks.json`, gated by
 Unit-10 rechecked the same docs and smoke-tested the generated files against
 local `codex-cli 0.128.0`.
 
+Unit-11 added the disposable smoke vault to local Codex trusted projects and
+verified actual hook runtime execution.
+
 ## Decision
 
 `hyperresearch install --codex` will generate repo-local Codex hook files:
@@ -48,3 +51,12 @@ through `codex exec --json --enable codex_hooks`, even though generated
 AGENTS.md and project skills loaded. Treat runtime hook execution as unverified
 until an interactive trusted Codex session or a clarified `codex exec` trust
 path confirms it.
+
+Unit-11 confirmed the missing condition: Codex will not load project-local
+hooks until the target project is explicitly trusted. After adding
+`/private/tmp/hpr-codex-hook-runtime.RxOQLm` as a trusted project,
+SessionStart hook context became model-visible and disposable instrumentation
+observed both `SessionStart` and Bash `PreToolUse` invocations.
+
+`codex exec --json` still did not expose hook lifecycle events as JSONL items,
+so future runtime verification should not rely only on event names.

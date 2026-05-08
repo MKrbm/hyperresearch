@@ -1,16 +1,16 @@
 # Current Status
 
 ## Phase
-Construction complete through Unit-10
+Construction complete through Unit-11
 
 ## Active Unit
-No active Unit. Unit-10 completed as Codex hook runtime smoke.
+No active Unit. Unit-11 completed as trusted Codex hook runtime verification.
 
 ## Current Objective
 Keep Codex parity focused on reproducing the Claude workflow without changing
 Claude-dependent backend surfaces. MCP and fetch/backend changes remain out of
-current scope. Codex hooks are generated as guardrails, with runtime execution
-still unverified in `codex exec`.
+current scope. Codex hooks are generated guardrails and have been runtime-
+verified in a trusted Codex project.
 
 ## Confirmed Decisions
 
@@ -39,6 +39,7 @@ still unverified in `codex exec`.
 - [x] Unit-08: Codex Parent Regeneration Tests
 - [x] Unit-09: Codex Hook Generation
 - [x] Unit-10: Codex Hook Runtime Smoke
+- [x] Unit-11: Trusted Codex Hook Runtime Verification
 
 ## Latest Verification
 
@@ -151,6 +152,19 @@ still unverified in `codex exec`.
 - [x] Unit-10 `codex exec --json --enable codex_hooks` loaded generated
       `AGENTS.md` and project skills, but did not emit hook lifecycle events or
       inject hook context.
+- [x] Unit-11 explicitly trusted
+      `/private/tmp/hpr-codex-hook-runtime.RxOQLm` in local Codex config after
+      backing up the previous config to
+      `/private/tmp/codex-config-before-unit11.toml`.
+- [x] Unit-11 confirmed SessionStart hook context is model-visible after trust:
+      `HYPERRESEARCH: A research knowledge base exists in this project.`
+- [x] Unit-11 temporarily instrumented only the disposable generated hook
+      script and observed actual `SessionStart` and Bash `PreToolUse` hook
+      invocations from Codex runtime.
+- [x] Unit-11 regenerated the disposable hook script with
+      `install --codex` after instrumentation.
+- [x] `.gitignore` now ignores `.codex/` and `.agents/` as generated per-user
+      agent install outputs.
 
 ## Dry-Run Findings
 
@@ -193,15 +207,16 @@ still unverified in `codex exec`.
   support, but MCP remains out of scope for this Claude-workflow reproduction
   effort unless a later ADR changes that decision.
 - Codex hooks are guardrails/context injection, not hard security boundaries.
-- Codex hook files are generated and script-tested, but actual hook execution
-  was not observed in `codex exec` 0.128.0 even with hooks enabled,
-  git-initialized disposable vault, and attempted project trust overrides.
+- Codex hooks require the target project to be explicitly trusted before
+  project-local `.codex` config, hooks, or exec policies load.
+- `codex exec --json` does not currently expose hook lifecycle events even when
+  hooks are running; Unit-11 verified runtime execution through exact
+  SessionStart context and disposable script instrumentation.
 - Codex tool-lock parity remains a layered prompt/sandbox/lint contract, not a
   proven hard equivalent of Claude agent frontmatter tool allowlists.
 
 ## Next Action
 
-Verify Codex hooks in an interactive trusted Codex session when available, or
-choose the next Codex-only parity hardening task. Do not change
+Choose the next Codex-only parity hardening task. Do not change
 Claude-dependent CLI/backend/MCP surfaces unless the user explicitly broadens
 scope.
